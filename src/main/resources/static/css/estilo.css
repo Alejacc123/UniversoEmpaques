@@ -1,0 +1,30 @@
+:root{
+  --ue-blue:#4B93B6;
+  --ue-blue-dark:#3A7593;
+  --ue-black:#111111;
+  --ue-white:#ffffff;
+  --ue-bg:#F4F6F7;
+}
+body{ font-family:'Poppins', sans-serif; background:var(--ue-bg); color:var(--ue-black); }
+.brand-word{ font-style:italic; font-weight:800; letter-spacing:-0.5px; }
+.brand-sub{ font-weight:600; letter-spacing:3px; font-size:0.7rem; }
+.rule{ height:2px; background:var(--ue-blue); flex:1; }
+.btn-ue{ background:var(--ue-blue); border-color:var(--ue-blue); color:#fff; }
+.btn-ue:hover{ background:var(--ue-blue-dark); border-color:var(--ue-blue-dark); color:#fff; }
+.btn-outline-ue{ border-color:var(--ue-blue); color:var(--ue-blue); }
+.btn-outline-ue:hover{ background:var(--ue-blue); color:#fff; }
+.text-ue{ color:var(--ue-blue) !important; }
+.bg-ue{ background:var(--ue-blue) !important; }
+.navbar-ue{ background:var(--ue-black); }
+.sidebar{ background:#fff; min-height:calc(100vh - 62px); border-right:1px solid #e5e5e5; }
+.sidebar .nav-link{ color:#333; border-radius:8px; padding:.6rem .9rem; font-size:.92rem; }
+.sidebar .nav-link.active{ background:var(--ue-blue); color:#fff; }
+.sidebar .nav-link:hover{ background:#eef5f8; }
+.status-pill{ font-size:.72rem; font-weight:600; padding:.25rem .6rem; border-radius:20px; }
+.status-cotizado{ background:#e6f1fb; color:#185fa5; }
+.status-produccion{ background:#faeeda; color:#854f0b; }
+.status-terminado{ background:#eaf3de; color:#3b6d11; }
+.status-despachado{ background:#eeecfe; color:#534ab7; }
+.status-entregado{ background:#e1f5ee; color:#0f6e56; }
+.card{ border-radius:12px; border:1px solid #e7e7e7; }
+.hero-landing{ background:linear-gradient(180deg,var(--ue-black) 0%, #1c1c1c 100%); color:#fff; }

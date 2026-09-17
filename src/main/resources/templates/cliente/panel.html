@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi panel — Universo Empaques</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+  <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-white small">Hola, <span th:text="${nombre}">Cliente</span></span>
+    <form th:action="@{/logout}" method="post" class="mb-0">
+      <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+    </form>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h4 class="mb-4">Mi panel</h4>
+
+  <div class="alert alert-light border">
+    Este panel se ira completando en las siguientes iteraciones con:
+    <strong>solicitar cotización (RF-06)</strong>, <strong>ver y aprobar cotizaciones (RF-08, RF-09)</strong>,
+    <strong>solicitar pedido (RF-10)</strong> y <strong>consultar el avance del pedido (RF-15)</strong>.
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Cotizaciones pendientes</div><div class="fs-3 fw-bold">0</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Pedidos activos</div><div class="fs-3 fw-bold">0</div></div></div>
+    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Pedidos entregados</div><div class="fs-3 fw-bold">0</div></div></div>
+  </div>
+</div>
+
+</body>
+</html>

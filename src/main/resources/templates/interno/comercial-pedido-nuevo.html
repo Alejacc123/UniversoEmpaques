@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo pedido — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-ue">Cargo: Comercial</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <div class="sidebar p-3" style="width:230px;">
+        <div class="nav flex-column gap-1">
+            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
+            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <h4 class="mb-4">Registrar pedido</h4>
+
+        <div class="card p-4" style="max-width:480px;">
+            <form th:action="@{/comercial/pedidos}" th:object="${registrarPedidoForm}" method="post">
+
+                <div class="mb-2">
+                    <label class="form-label small">Cliente</label>
+                    <select class="form-select" th:field="*{codigoCliente}"
+                            th:classappend="${#fields.hasErrors('codigoCliente')} ? 'is-invalid'">
+                        <option value="">-- Selecciona un cliente --</option>
+                        <option th:each="c : ${clientes}" th:value="${c.codigo}" th:text="${c.nombre + ' (' + c.correo + ')'}"></option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoCliente')}" th:errors="*{codigoCliente}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Fecha de entrega estimada</label>
+                    <input type="date" class="form-control" th:field="*{fechaEntrega}">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-ue">Crear pedido</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/comercial/pedidos}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+
+        <p class="text-muted small mt-3">
+            Después de crear el pedido podrás agregarle los productos y cantidades desde su pantalla de detalle.
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

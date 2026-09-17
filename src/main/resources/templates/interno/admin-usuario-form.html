@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuario — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-ue">Cargo: Administrador</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <div class="sidebar p-3" style="width:230px;">
+        <div class="nav flex-column gap-1">
+            <a class="nav-link" th:href="@{/admin/panel}">Inicio</a>
+            <a class="nav-link active" th:href="@{/admin/usuarios}">Usuarios</a>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <h4 class="mb-4" th:text="${esEdicion} ? 'Editar usuario' : 'Registrar nuevo usuario'">Registrar usuario</h4>
+
+        <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
+
+        <div class="card p-4" style="max-width:520px;">
+            <form th:action="@{/admin/usuarios}" th:object="${registrarUsuarioForm}" method="post">
+
+                <input type="hidden" th:field="*{codigo}">
+
+                <div class="mb-2">
+                    <label class="form-label small">Nombre completo</label>
+                    <input type="text" class="form-control" th:field="*{nombre}"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Correo electrónico</label>
+                    <input type="email" class="form-control" th:field="*{correo}"
+                           th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Teléfono</label>
+                    <input type="text" class="form-control" th:field="*{telefono}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">
+                        Contraseña
+                        <span th:if="${esEdicion}" class="text-muted">(déjala en blanco para no cambiarla)</span>
+                    </label>
+                    <input type="password" class="form-control" th:field="*{contrasena}">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Rol (nivel de permisos)</label>
+                    <select class="form-select" th:field="*{codigoRol}">
+                        <option value="">-- Selecciona un rol --</option>
+                        <option th:each="r : ${roles}" th:value="${r.codigo}" th:text="${r.nombre}"></option>
+                    </select>
+                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('codigoRol')}" th:errors="*{codigoRol}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Área / Cargo (opcional para Administrador)</label>
+                    <select class="form-select" th:field="*{codigoArea}">
+                        <option value="">-- Sin área --</option>
+                        <option th:each="a : ${areas}" th:value="${a.codigo}" th:text="${a.tipo}"></option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-ue">Guardar</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/admin/usuarios}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

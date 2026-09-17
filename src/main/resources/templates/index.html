@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Universo Empaques</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+  <span class="navbar-brand brand-word fs-4 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-light btn-sm" th:href="@{/login}">Iniciar sesión</a>
+    <a class="btn btn-ue btn-sm" th:href="@{/registro}">Registrarme</a>
+  </div>
+</nav>
+
+<div class="hero-landing py-5 text-center">
+  <div class="container py-4">
+    <h1 class="display-5 fw-bold">Empaques personalizados para tu negocio</h1>
+    <p class="lead text-white-50 mb-4">Cotiza, diseña y da seguimiento a tus pedidos de empaques en un solo lugar.</p>
+    <a class="btn btn-ue btn-lg px-4" th:href="@{/registro}">Solicitar cotización</a>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-4 text-center">
+    <div class="col-md-4">
+      <h5>Cartón Kraft</h5>
+      <p class="text-muted small">Empaques resistentes y sostenibles para alimentos y reposterías.</p>
+    </div>
+    <div class="col-md-4">
+      <h5>Diseño personalizado</h5>
+      <p class="text-muted small">Cajas, bolsas y empaques con tu marca y medidas exactas.</p>
+    </div>
+    <div class="col-md-4">
+      <h5>Seguimiento en línea</h5>
+      <p class="text-muted small">Consulta el estado de tu pedido desde que se cotiza hasta que se entrega.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Crear cuenta — Universo Empaques</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<div class="d-flex align-items-center justify-content-center py-5" style="min-height:100vh;">
+  <div class="card shadow-sm p-4" style="width:440px;">
+
+    <div class="text-center mb-3">
+      <span class="brand-word fs-3">UNIVERSO<span class="text-ue">.</span></span>
+    </div>
+    <h6 class="text-center text-muted mb-3">Crea tu cuenta de cliente</h6>
+
+    <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
+
+    <form th:action="@{/registro}" th:object="${registroClienteForm}" method="post">
+
+      <div class="mb-2">
+        <label class="form-label small">Nombre completo</label>
+        <input type="text" class="form-control" th:field="*{nombre}"
+               th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small">Correo electrónico</label>
+        <input type="email" class="form-control" th:field="*{correo}"
+               th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small">Teléfono</label>
+        <input type="text" class="form-control" th:field="*{telefono}">
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small">Dirección</label>
+        <input type="text" class="form-control" th:field="*{direccion}">
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small">Contraseña</label>
+        <input type="password" class="form-control" th:field="*{contrasena}"
+               th:classappend="${#fields.hasErrors('contrasena')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('contrasena')}" th:errors="*{contrasena}"></div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label small">Confirmar contraseña</label>
+        <input type="password" class="form-control" th:field="*{confirmarContrasena}"
+               th:classappend="${#fields.hasErrors('confirmarContrasena')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmarContrasena')}" th:errors="*{confirmarContrasena}"></div>
+      </div>
+
+      <button type="submit" class="btn btn-ue w-100">Registrarme</button>
+    </form>
+
+    <p class="text-center small text-muted mt-3 mb-0">
+      ¿Ya tienes cuenta? <a th:href="@{/login}" class="text-ue">Inicia sesión</a>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

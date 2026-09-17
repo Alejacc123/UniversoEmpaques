@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de pedido — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-ue">Cargo: Comercial</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <div class="sidebar p-3" style="width:230px;">
+        <div class="nav flex-column gap-1">
+            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
+            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <a class="small text-ue text-decoration-none" th:href="@{/comercial/pedidos}">&larr; Volver a pedidos</a>
+        <h4 class="mt-2 mb-1" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
+        <p class="text-muted small mb-4">
+            Cliente: <strong th:text="${pedido.cliente != null ? pedido.cliente.nombre : '—'}">Cliente</strong> ·
+            Registrado: <span th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy')}">-</span> ·
+            Estado actual:
+            <span class="status-pill status-cotizado" th:text="${estadoActual != null ? estadoActual.estado : 'Sin estado'}">Estado</span>
+        </p>
+
+        <div class="row g-3">
+            <div class="col-md-7">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Productos del pedido</h6>
+                    <table class="table table-sm align-middle mb-3">
+                        <thead class="text-muted small"><tr><th>Producto</th><th>Material</th><th>Cantidad</th><th>Precio unit.</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${detalles}">
+                            <td th:text="${d.producto.nombre}">Producto</td>
+                            <td th:text="${d.producto.material}">Material</td>
+                            <td th:text="${d.cantidad}">0</td>
+                            <td th:text="${'$' + #numbers.formatDecimal(d.producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(detalles)}">
+                            <td colspan="4" class="text-muted text-center py-3">Aún no se han agregado productos.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <hr>
+                    <h6 class="mb-2">Agregar producto</h6>
+                    <form th:action="@{/comercial/pedidos/{id}/detalles(id=${pedido.codigo})}" th:object="${agregarDetalleForm}" method="post" class="row g-2">
+                        <input type="hidden" th:field="*{codigoPedido}">
+                        <div class="col-6">
+                            <select class="form-select form-select-sm" th:field="*{codigoProducto}"
+                                    th:classappend="${#fields.hasErrors('codigoProducto')} ? 'is-invalid'">
+                                <option value="">-- Producto --</option>
+                                <option th:each="p : ${productos}" th:value="${p.codigo}" th:text="${p.nombre}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoProducto')}" th:errors="*{codigoProducto}"></div>
+                        </div>
+                        <div class="col-3">
+                            <input type="number" min="1" class="form-control form-control-sm" placeholder="Cantidad" th:field="*{cantidad}"
+                                   th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+                        </div>
+                        <div class="col-3">
+                            <button type="submit" class="btn btn-ue btn-sm w-100">Agregar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Historial de estado</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li th:each="e : ${estadoActual != null ? {estadoActual} : {}}" class="mb-2">
+                            <span class="status-pill status-produccion" th:text="${e.estado}">Estado</span>
+                            <div class="text-muted" th:text="${#temporals.format(e.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                        </li>
+                    </ul>
+                    <p class="text-muted small mt-2 mb-0">
+                        El cambio de estado (producción, despacho, etc.) se maneja desde el módulo de cada área — lo agregamos en el siguiente paso.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
