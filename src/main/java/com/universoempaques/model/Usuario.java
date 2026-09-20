@@ -5,10 +5,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * Usuario: trabajador interno de Universo Empaques (Comercial, Diseno,
- * Produccion, Bodega o Administrador). Se categoriza por Area y su
- * jerarquia de permisos se define con Rol (RF-03, RF-04).
+ * Usuario: trabajador interno de Universo Empaques. En el modelo v2
+ * ya NO tiene una unica Area/Rol por columna: puede tener varios,
+ * a traves de las tablas puente UsuarioRol y UsuarioArea.
+ *
+ * Para no complicar la logica de la aplicacion (login, menus, permisos),
+ * asumimos que cada usuario, en la practica, tendra UN rol principal y
+ * UN area principal (los primeros que se le asignen). La base de datos
+ * queda libre para soportar mas adelante multiples roles/areas si el
+ * negocio lo llegara a necesitar.
  */
 @Entity
 @Table(name = "usuario")
@@ -31,20 +42,48 @@ public class Usuario {
     @Column(name = "nombre")
     private String nombre;
 
-    @Column(name = "telefono")
-    private Integer telefono;
+    @Column(name = "telefono_fijo")
+    private String telefonoFijo;
 
-    @ManyToOne
-    @JoinColumn(name = "codigo_area")
-    private Area area;
+    @Column(name = "telefono_celular")
+    private String telefonoCelular;
 
-    @ManyToOne
-    @JoinColumn(name = "codigo_rol")
-    private Rol rol;
+    @Column(name = "num_documento")
+    private String numDocumento;
 
-    /** Atajo para saber si este usuario es administrador (RF-04). */
+    @Column(name = "fecha_ingreso")
+    private LocalDate fechaIngreso;
+
+    @Column(name = "cant_horas_trabajadas")
+    private BigDecimal cantHorasTrabajadas;
+
+    @Column(name = "fec_vencimiento_contrato")
+    private LocalDate fecVencimientoContrato;
+
+    @Column(name = "nomina")
+    private BigDecimal nomina;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UsuarioRol> usuarioRoles = new HashSet<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UsuarioArea> usuarioAreas = new HashSet<>();
+
+    /** Rol principal del usuario (el primero que se le asigno). */
+    @Transient
+    public Rol getRolPrincipal() {
+        return usuarioRoles.stream().findFirst().map(UsuarioRol::getRol).orElse(null);
+    }
+
+    /** Area/cargo principal del usuario (el primero que se le asigno). */
+    @Transient
+    public Area getAreaPrincipal() {
+        return usuarioAreas.stream().findFirst().map(UsuarioArea::getArea).orElse(null);
+    }
+
     @Transient
     public boolean esAdministrador() {
+        Rol rol = getRolPrincipal();
         return rol != null && Rol.ADMINISTRADOR.equalsIgnoreCase(rol.getNombre());
     }
 }

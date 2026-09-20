@@ -6,9 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Representa un area/departamento de la empresa (Comercial, Diseno,
- * Produccion, Bodega). Se usa para categorizar a los usuarios internos
- * (ver clase Usuario).
+ * Area/cargo de la empresa (Comercial, Diseno, Produccion, Bodega).
+ * En el modelo v2 de Amelie la columna se llama "Nombre" (antes "Tipo").
  */
 @Entity
 @Table(name = "area")
@@ -22,14 +21,14 @@ public class Area {
     @Column(name = "codigo")
     private Integer codigo;
 
-    @Column(name = "tipo")
-    private String tipo;
+    @Column(name = "nombre")
+    private String nombre;
 
     @Column(name = "direccion")
     private String direccion;
 
-    public Area(String tipo, String direccion) {
-        this.tipo = tipo;
+    public Area(String nombre, String direccion) {
+        this.nombre = nombre;
         this.direccion = direccion;
     }
 }

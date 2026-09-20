@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface AreaRepository extends JpaRepository<Area, Integer> {
-    Optional<Area> findByTipo(String tipo);
+    Optional<Area> findByNombre(String nombre);
 }
