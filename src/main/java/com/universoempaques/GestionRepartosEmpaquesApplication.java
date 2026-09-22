@@ -2,6 +2,7 @@ package com.universoempaques;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Punto de entrada de la aplicacion. Al ejecutar este archivo
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * el servidor web en http://localhost:8080
  */
 @SpringBootApplication
+@EnableScheduling
 public class GestionRepartosEmpaquesApplication {
 
     public static void main(String[] args) {
