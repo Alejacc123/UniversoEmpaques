@@ -6,6 +6,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.authentication.DisabledException;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,7 +36,9 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 // Paginas publicas: inicio, login, registro de cliente y recursos estaticos
-                .requestMatchers("/", "/login", "/registro", "/css/**", "/js/**", "/img/**").permitAll()
+                .requestMatchers("/", "/login", "/registro", "/css/**", "/js/**", "/img/**", "/error").permitAll()
+                // Las paginas de error (404, 403...) siempre se pueden mostrar
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 
                 // Modulo de administracion: solo el rol Administrador (RF-03, RF-04, RF-18, RF-19)
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -54,6 +58,9 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(new RedireccionSegunRolHandler())
+                // Cuenta desactivada (cliente INACTIVO) -> mensaje distinto a "clave incorrecta"
+                .failureHandler((request, response, excepcion) -> response.sendRedirect(
+                        request.getContextPath() + (excepcion instanceof DisabledException ? "/login?inactivo" : "/login?error")))
                 .permitAll()
             )
             .logout(logout -> logout

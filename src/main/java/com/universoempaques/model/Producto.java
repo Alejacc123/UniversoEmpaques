@@ -8,10 +8,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 /**
- * Catalogo de productos/empaques que ofrece Universo Empaques.
+ * Catalogo de productos/empaques (tabla "Producto").
+ * "Precio" es el precio de lista ACTUAL; el precio con el que se
+ * vendio en cada pedido queda en DetallePedido.precioUnitario.
  */
 @Entity
-@Table(name = "producto")
+@Table(name = "Producto")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,15 +21,21 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo")
+    @Column(name = "Codigo")
     private Integer codigo;
 
-    @Column(name = "nombre")
+    @Column(name = "Nombre")
     private String nombre;
 
-    @Column(name = "material")
+    @Column(name = "Material")
     private String material;
 
-    @Column(name = "precio")
+    @Column(name = "Precio", precision = 10, scale = 2)
     private BigDecimal precio;
+
+    @Column(name = "Forma")
+    private String forma;
+
+    @Column(name = "Tamano")
+    private String tamano;
 }

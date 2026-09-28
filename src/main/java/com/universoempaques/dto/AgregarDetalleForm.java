@@ -1,5 +1,6 @@
 package com.universoempaques.dto;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -21,5 +22,6 @@ public class AgregarDetalleForm {
 
     @NotNull(message = "Debes indicar una cantidad")
     @Min(value = 1, message = "La cantidad debe ser al menos 1")
+    @Max(value = 1000000, message = "La cantidad máxima es 1.000.000")
     private Integer cantidad;
 }

@@ -8,11 +8,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Pedido realizado por un cliente y atendido por un usuario interno
- * (RF-10, RF-11, RF-14, RF-15).
+ * Pedido de un cliente, atendido por un usuario interno (tabla "Pedido").
+ * RF-10, RF-11, RF-14, RF-15.
  */
 @Entity
-@Table(name = "pedido")
+@Table(name = "Pedido")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,21 +20,33 @@ public class Pedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo")
+    @Column(name = "Codigo")
     private Integer codigo;
 
-    @Column(name = "fecha_registro")
+    /**
+     * Fecha en que se registro el pedido. En el script la columna se
+     * llama "FechaRegistroTecnicas" (pendiente con Amelie: el
+     * diccionario dice "FechaRegistro").
+     */
+    @Column(name = "FechaRegistroTecnicas")
     private LocalDateTime fechaRegistro;
 
-    @Column(name = "fecha_entrega")
+    @Column(name = "FechaEntrega")
     private LocalDateTime fechaEntrega;
 
+    /** FK a Cliente por NIT (texto). */
     @ManyToOne
-    @JoinColumn(name = "codigo_cliente")
+    @JoinColumn(name = "NITCliente")
     private Cliente cliente;
 
-    /** Usuario interno (area) al que esta asignado actualmente el pedido. */
+    /** Usuario interno que registro/atiende el pedido. */
     @ManyToOne
-    @JoinColumn(name = "codigo_usuario")
+    @JoinColumn(name = "CodigoUsuario")
     private Usuario usuario;
+
+    @Column(name = "FormaPago")
+    private String formaPago;
+
+    @Column(name = "DireccionEntrega")
+    private String direccionEntrega;
 }

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cotización')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-cotizaciones')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+        <div th:if="${param.creada}" class="alert alert-success py-2 small">
+            Solicitud enviada. Te avisaremos cuando el área comercial registre el valor.
+        </div>
+
+        <th:block th:with="c=${cotizacion}">
+        <a class="small text-ue text-decoration-none" th:href="@{/cliente/cotizaciones}">&larr; Volver a mis cotizaciones</a>
+        <h4 class="mt-2 mb-3">
+            <span th:text="'Cotización COT-' + ${c.codigo}">Cotización</span>
+            <span class="status-pill" th:classappend="${c.estado.claseCss}" th:text="${c.estado.etiqueta}">Estado</span>
+        </h4>
+
+        <div class="card p-4" style="max-width:620px;">
+            <dl class="row mb-0 small">
+                <dt class="col-sm-4">Fecha de solicitud</dt>
+                <dd class="col-sm-8" th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</dd>
+                <dt class="col-sm-4">Empaque solicitado</dt>
+                <dd class="col-sm-8" th:text="${c.especificaciones}">-</dd>
+                <dt class="col-sm-4">Valor</dt>
+                <dd class="col-sm-8 fs-5 fw-bold" th:text="${c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : 'Por cotizar'}">-</dd>
+                <dt class="col-sm-4" th:if="${c.pedido != null}">Pedido</dt>
+                <dd class="col-sm-8" th:if="${c.pedido != null}" th:text="'PED-' + ${c.pedido.codigo}">-</dd>
+            </dl>
+
+            <!-- RF-08: solo se puede responder cuando ya tiene valor -->
+            <div th:if="${c.estado.name() == 'COTIZADA'}" class="border-top pt-3 mt-3">
+                <p class="small mb-2">¿Aceptas esta cotización?</p>
+                <div class="d-flex gap-2">
+                    <form th:action="@{/cliente/cotizaciones/{id}/aprobar(id=${c.codigo})}" method="post">
+                        <button class="btn btn-ue">Aprobar</button>
+                    </form>
+                    <form th:action="@{/cliente/cotizaciones/{id}/rechazar(id=${c.codigo})}" method="post"
+                          onsubmit="return confirm('¿Seguro que quieres rechazar esta cotización?');">
+                        <button class="btn btn-outline-danger">Rechazar</button>
+                    </form>
+                </div>
+            </div>
+            <p th:if="${c.estado.name() == 'SOLICITADA'}" class="text-muted small border-top pt-3 mt-3 mb-0">
+                El área comercial está revisando tu solicitud.
+            </p>
+        </div>
+        </th:block>
+    </main>
+</div>
+
+</body>
+</html>

@@ -18,6 +18,15 @@ public class RedireccionSegunRolHandler extends SimpleUrlAuthenticationSuccessHa
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                          Authentication authentication) throws IOException {
+        response.sendRedirect(request.getContextPath() + destinoPara(authentication));
+    }
+
+    /**
+     * Panel que le corresponde a quien inicio sesion. Lo usa tambien
+     * /mi-panel (el logo de la barra superior) para llevar a cada quien
+     * a su inicio.
+     */
+    public static String destinoPara(Authentication authentication) {
         String destino = "/";
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             switch (authority.getAuthority()) {
@@ -27,9 +36,9 @@ public class RedireccionSegunRolHandler extends SimpleUrlAuthenticationSuccessHa
                 case "ROLE_DISENO"     -> destino = "/diseno/panel";
                 case "ROLE_PRODUCCION" -> destino = "/produccion/panel";
                 case "ROLE_BODEGA"     -> destino = "/bodega/panel";
-                default -> destino = "/";
+                default -> { }
             }
         }
-        response.sendRedirect(request.getContextPath() + destino);
+        return destino;
     }
 }

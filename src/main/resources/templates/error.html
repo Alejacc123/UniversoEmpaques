@@ -1,0 +1,37 @@
+<!doctype html>
+<!--
+  Pagina de error de toda la aplicacion. Spring Boot la usa sola en vez
+  de la "Whitelabel Error Page" (404 no existe, 403 sin permiso, 500 fallo).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+
+<div class="d-flex align-items-center justify-content-center px-3" style="min-height:100vh;">
+  <div class="card shadow-sm p-4 text-center" style="width:100%; max-width:440px;">
+    <img th:src="@{/img/logo-negro.png}" alt="Universo Empaques" class="logo-card mx-auto mb-3">
+
+    <th:block th:switch="${status}">
+      <th:block th:case="404">
+        <h5>Página no encontrada</h5>
+        <p class="text-muted small">La dirección que buscas no existe o fue movida.</p>
+      </th:block>
+      <th:block th:case="403">
+        <h5>No tienes permiso</h5>
+        <p class="text-muted small">Esta sección es de otra área o rol. Si crees que es un error, habla con el administrador.</p>
+      </th:block>
+      <th:block th:case="*">
+        <h5>Algo salió mal</h5>
+        <p class="text-muted small">Ocurrió un error inesperado. Intenta de nuevo; si continúa, avísale al equipo de soporte.</p>
+      </th:block>
+    </th:block>
+
+    <p class="text-muted small mb-3" th:if="${status}" th:text="'Código: ' + ${status}">Código</p>
+
+    <a class="btn btn-ue" sec:authorize="isAuthenticated()" th:href="@{/mi-panel}">Ir a mi panel</a>
+    <a class="btn btn-ue" sec:authorize="!isAuthenticated()" th:href="@{/}">Ir al inicio</a>
+  </div>
+</div>
+
+</body>
+</html>

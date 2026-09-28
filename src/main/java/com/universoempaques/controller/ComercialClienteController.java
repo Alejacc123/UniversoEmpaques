@@ -10,8 +10,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Modulo del area comercial: consultar y administrar la
- * informacion de las cuentas de los clientes registrados (RF-05).
+ * Modulo del area comercial: consultar y administrar la informacion
+ * de las cuentas de los clientes (RF-05). Los clientes se identifican
+ * por su NIT (llave primaria en el modelo v2).
  */
 @Controller
 @RequestMapping("/comercial/clientes")
@@ -29,16 +30,19 @@ public class ComercialClienteController {
         return "interno/comercial-clientes";
     }
 
-    @GetMapping("/{codigo}/editar")
-    public String mostrarFormularioEditar(@PathVariable Integer codigo, Model model) {
-        Cliente cliente = clienteService.buscarPorId(codigo);
+    @GetMapping("/{nit}/editar")
+    public String mostrarFormularioEditar(@PathVariable String nit, Model model) {
+        Cliente cliente = clienteService.buscarPorNit(nit);
 
         EditarClienteForm form = new EditarClienteForm();
-        form.setCodigo(cliente.getCodigo());
+        form.setNit(cliente.getNit());
         form.setNombre(cliente.getNombre());
+        form.setRazonSocial(cliente.getRazonSocial());
         form.setCorreo(cliente.getCorreo());
-        form.setTelefono(cliente.getTelefono() != null ? String.valueOf(cliente.getTelefono()) : "");
+        form.setTelefono(cliente.getTelefono());
+        form.setCelular(cliente.getCelular());
         form.setDireccion(cliente.getDireccion());
+        form.setEstadoCliente(cliente.getEstadoCliente() != null ? cliente.getEstadoCliente() : Cliente.ESTADO_ACTIVO);
 
         model.addAttribute("editarClienteForm", form);
         return "interno/comercial-cliente-form";
@@ -56,6 +60,6 @@ public class ComercialClienteController {
             model.addAttribute("errorNegocio", ex.getMessage());
             return "interno/comercial-cliente-form";
         }
-        return "redirect:/comercial/clientes";
+        return "redirect:/comercial/clientes?actualizado";
     }
 }

@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Define el nivel jerarquico de permisos de un usuario interno
- * (Administrador o Empleado). Junto con Area, determina que puede
- * hacer cada trabajador dentro del sistema (RF-04).
+ * Rol (tabla "Rol"): nivel jerarquico de permisos del trabajador
+ * (Administrador o Empleado). Junto con el Area define que puede
+ * hacer cada quien en el sistema (RF-04).
  */
 @Entity
-@Table(name = "rol")
+@Table(name = "Rol")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,13 +22,18 @@ public class Rol {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo")
+    @Column(name = "Codigo")
     private Integer codigo;
 
-    @Column(name = "nombre")
+    @Column(name = "Nombre")
     private String nombre;
 
-    public Rol(String nombre) {
+    /** Descripcion en texto de lo que puede hacer el rol (informativo). */
+    @Column(name = "Permisos")
+    private String permisos;
+
+    public Rol(String nombre, String permisos) {
         this.nombre = nombre;
+        this.permisos = permisos;
     }
 }

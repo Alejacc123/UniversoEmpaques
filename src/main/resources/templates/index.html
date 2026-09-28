@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>Universo Empaques</title>
@@ -7,14 +7,19 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/estilo.css}">
+  <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
+  <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
 </head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-  <span class="navbar-brand brand-word fs-4 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-  <div class="d-flex gap-2">
+<nav class="navbar navbar-dark navbar-ue px-3 px-md-4">
+  <a class="navbar-brand py-0" th:href="@{/}"><img th:src="@{/img/logo-blanco.png}" alt="Universo Empaques" class="logo-nav"></a>
+  <div class="d-flex gap-2" sec:authorize="!isAuthenticated()">
     <a class="btn btn-outline-light btn-sm" th:href="@{/login}">Iniciar sesión</a>
     <a class="btn btn-ue btn-sm" th:href="@{/registro}">Registrarme</a>
+  </div>
+  <div class="d-flex gap-2" sec:authorize="isAuthenticated()">
+    <a class="btn btn-ue btn-sm" th:href="@{/mi-panel}">Ir a mi panel</a>
   </div>
 </nav>
 
@@ -22,7 +27,8 @@
   <div class="container py-4">
     <h1 class="display-5 fw-bold">Empaques personalizados para tu negocio</h1>
     <p class="lead text-white-50 mb-4">Cotiza, diseña y da seguimiento a tus pedidos de empaques en un solo lugar.</p>
-    <a class="btn btn-ue btn-lg px-4" th:href="@{/registro}">Solicitar cotización</a>
+    <a class="btn btn-ue btn-lg px-4" sec:authorize="!isAuthenticated()" th:href="@{/registro}">Solicitar cotización</a>
+    <a class="btn btn-ue btn-lg px-4" sec:authorize="hasRole('CLIENTE')" th:href="@{/cliente/cotizaciones/nueva}">Solicitar cotización</a>
   </div>
 </div>
 

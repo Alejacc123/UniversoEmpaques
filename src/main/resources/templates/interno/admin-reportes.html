@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Reportes')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('admin-reportes')}"></aside>
+
+    <main class="contenido" th:with="r=${reporte}">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+        <div class="d-flex justify-content-between align-items-end mb-3 flex-wrap gap-2">
+            <div>
+                <h4 class="mb-0">Reportes</h4>
+                <p class="text-muted small mb-0"
+                   th:text="'Del ' + ${#temporals.format(r.desde(), 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(r.hasta(), 'dd/MM/yyyy')}">Periodo</p>
+            </div>
+            <!-- Filtro del periodo: una sola fila, arriba de todo -->
+            <form th:action="@{/admin/reportes}" method="get" class="d-flex gap-2 align-items-end flex-wrap">
+                <div>
+                    <label class="form-label small mb-0">Desde</label>
+                    <input type="date" name="desde" class="form-control form-control-sm" th:value="${r.desde()}">
+                </div>
+                <div>
+                    <label class="form-label small mb-0">Hasta</label>
+                    <input type="date" name="hasta" class="form-control form-control-sm" th:value="${r.hasta()}">
+                </div>
+                <button class="btn btn-ue btn-sm">Ver</button>
+                <a class="btn btn-outline-ue btn-sm" th:href="@{/admin/reportes/pedidos.csv(desde=${r.desde()}, hasta=${r.hasta()})}">Descargar CSV</a>
+            </form>
+        </div>
+
+        <!-- Cifras principales -->
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3"><div class="card tarjeta-dato p-3 h-100">
+                <div class="text-muted small">Pedidos registrados</div>
+                <div class="fs-3 fw-bold" th:text="${r.totalPedidos()}">0</div>
+                <div class="small text-muted" th:text="${r.entregados()} + ' entregados'">-</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="card tarjeta-dato p-3 h-100">
+                <div class="text-muted small">Valor de los pedidos</div>
+                <div class="fs-4 fw-bold" th:text="'$' + ${#numbers.formatDecimal(r.valorPedidos(), 0, 'POINT', 0, 'COMMA')}">$0</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="card tarjeta-dato p-3 h-100">
+                <div class="text-muted small">Cotizaciones solicitadas</div>
+                <div class="fs-3 fw-bold" th:text="${r.totalCotizaciones()}">0</div>
+                <div class="small text-muted" th:text="${r.valorPromedioCotizado() != null} ? 'Promedio $' + ${#numbers.formatDecimal(r.valorPromedioCotizado(), 0, 'POINT', 0, 'COMMA')} : 'Sin valores aún'">-</div>
+            </div></div>
+            <div class="col-6 col-lg-3"><div class="card tarjeta-dato p-3 h-100">
+                <div class="text-muted small">Tasa de aprobación</div>
+                <div class="fs-3 fw-bold" th:text="${r.tasaAprobacion() != null} ? ${r.tasaAprobacion()} + '%' : '—'">—</div>
+                <div class="small text-muted">Aprobadas sobre respondidas</div>
+            </div></div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <!-- Pedidos por estado: barras horizontales, un solo color (magnitud) -->
+            <div class="col-lg-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Pedidos por estado actual</h6>
+                    <div th:each="c : ${r.pedidosPorEstado()}" class="barra-fila">
+                        <span class="barra-etiqueta" th:text="${c.etiqueta()}">Estado</span>
+                        <span class="barra-pista" th:title="${c.etiqueta()} + ': ' + ${c.cantidad()}">
+                            <span class="barra-valor" th:style="'width:' + ${c.porcentaje()} + '%'"></span>
+                        </span>
+                        <span class="barra-numero" th:text="${c.cantidad()}">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Cotizaciones por estado</h6>
+                    <div th:each="c : ${r.cotizacionesPorEstado()}" class="barra-fila">
+                        <span class="barra-etiqueta" th:text="${c.etiqueta()}">Estado</span>
+                        <span class="barra-pista" th:title="${c.etiqueta()} + ': ' + ${c.cantidad()}">
+                            <span class="barra-valor" th:style="'width:' + ${c.porcentaje()} + '%'"></span>
+                        </span>
+                        <span class="barra-numero" th:text="${c.cantidad()}">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-lg-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-1">Tiempos de producción y entrega</h6>
+                    <p class="text-muted small mb-3">Promedio que dura cada etapa (solo etapas ya terminadas).</p>
+                    <table class="table table-sm align-middle mb-2">
+                        <thead class="text-muted small"><tr><th>Etapa</th><th>Promedio</th><th class="text-end">Pedidos medidos</th></tr></thead>
+                        <tbody>
+                        <tr th:each="t : ${r.tiempos()}">
+                            <td th:text="${t.etapa()}">Etapa</td>
+                            <td class="fw-semibold" th:text="${t.promedio()}">—</td>
+                            <td class="text-end text-muted" th:text="${t.muestras()}">0</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p class="small mb-0">Desde que se registra hasta que se entrega:
+                        <strong th:text="${r.tiempoTotalEntrega()}">—</strong></p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Productos más pedidos</h6>
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="text-muted small"><tr><th>Producto</th><th class="text-end">Unidades</th><th class="text-end">Valor</th></tr></thead>
+                        <tbody>
+                        <tr th:each="p : ${r.topProductos()}">
+                            <td th:text="${p.nombre()}">Producto</td>
+                            <td class="text-end" th:text="${#numbers.formatInteger(p.unidades(), 1, 'POINT')}">0</td>
+                            <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(p.valor(), 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(r.topProductos())}">
+                            <td colspan="3" class="text-muted text-center py-3">Sin productos en este periodo.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3 table-responsive">
+            <h6 class="mb-3">Pedidos del periodo</h6>
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>N.º</th><th>Cliente</th><th>Registrado</th><th>Entrega</th><th>Estado</th><th class="text-end">Total</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${r.pedidos()}">
+                    <td><a class="text-ue" th:href="@{/comercial/pedidos/{id}(id=${f.pedido().codigo})}" th:text="'PED-' + ${f.pedido().codigo}">PED-1</a></td>
+                    <td th:text="${f.pedido().cliente != null ? f.pedido().cliente.nombre : '—'}">Cliente</td>
+                    <td th:text="${#temporals.format(f.pedido().fechaRegistro, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${f.pedido().fechaEntrega != null ? #temporals.format(f.pedido().fechaEntrega, 'dd/MM/yyyy') : '—'}">-</td>
+                    <td><span class="status-pill" th:classappend="${f.estado().claseCss}" th:text="${f.estado().etiqueta}">Estado</span></td>
+                    <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(f.total(), 0, 'POINT', 0, 'COMMA')}">$0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(r.pedidos())}">
+                    <td colspan="6" class="text-muted text-center py-3">No hay pedidos registrados en este periodo.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

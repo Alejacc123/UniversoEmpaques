@@ -8,45 +8,64 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 /**
- * Cliente: persona o empresa externa que se autoregistra en el
- * sistema (RF-02). Su identificador es el NIT, no un consecutivo.
+ * Cliente: empresa o persona externa que se autoregistra (RF-02).
+ * Tabla "Cliente" del script de Amelie. Su llave primaria es el NIT
+ * (texto que escribe el cliente), NO un consecutivo automatico.
+ *
+ * Los nombres de atributo en Java son "limpios"; los nombres raros
+ * del script quedan solo dentro de @Column. Si Amelie renombra una
+ * columna, solo se cambia la anotacion, no el resto del codigo.
  */
 @Entity
-@Table(name = "cliente")
+@Table(name = "Cliente")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Cliente {
 
+    public static final String ESTADO_ACTIVO = "ACTIVO";
+    public static final String ESTADO_INACTIVO = "INACTIVO";
+
     @Id
-    @Column(name = "nit", length = 255)
+    @Column(name = "NIT")
     private String nit;
 
-    @Column(name = "correo", unique = true)
+    @Column(name = "Correo")
     private String correo;
 
-    @Column(name = "contrasena")
+    @Column(name = "Contrasena")
     private String contrasena;
 
-    @Column(name = "direccion")
+    @Column(name = "Direccion")
     private String direccion;
 
-    @Column(name = "nombre")
+    /** Nombre del cliente o de su empresa (columna "NombreEmpresa"). */
+    @Column(name = "NombreEmpresa")
     private String nombre;
 
-    @Column(name = "telefono")
+    /**
+     * Telefono fijo o celular, solo digitos (ej: "6076851234").
+     * Es VARCHAR(20) en schema.sql: como INT no cabia un numero de
+     * 10 digitos (el maximo de INT es 2.147.483.647).
+     */
+    @Column(name = "Telefono")
     private String telefono;
 
-    @Column(name = "fecha_registro")
+    @Column(name = "FechaRegistro")
     private LocalDate fechaRegistro;
 
-    /** Estado actual del cliente: activo / inactivo. */
-    @Column(name = "estado_cliente")
+    /** ACTIVO / INACTIVO. */
+    @Column(name = "EstadoCliente")
     private String estadoCliente;
 
-    @Column(name = "celular")
+    @Column(name = "Celular")
     private String celular;
 
-    @Column(name = "razon_social")
+    @Column(name = "RazonSocial")
     private String razonSocial;
+
+    @Transient
+    public boolean estaActivo() {
+        return !ESTADO_INACTIVO.equalsIgnoreCase(estadoCliente);
+    }
 }

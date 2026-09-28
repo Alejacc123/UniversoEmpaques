@@ -1,66 +1,78 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Editar cliente — Universo Empaques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Editar cliente')}"></head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-    <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-ue">Cargo: Comercial</span>
-        <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-        </form>
-    </div>
-</nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="d-flex">
-    <div class="sidebar p-3" style="width:230px;">
-        <div class="nav flex-column gap-1">
-            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
-            <a class="nav-link active" th:href="@{/comercial/clientes}">Clientes</a>
-            <a class="nav-link" th:href="@{/comercial/pedidos}">Pedidos</a>
-        </div>
-    </div>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-clientes')}"></aside>
 
-    <div class="flex-grow-1 p-4">
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <h4 class="mb-4">Editar cliente</h4>
 
         <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
 
-        <div class="card p-4" style="max-width:480px;">
+        <div class="card p-4" style="max-width:560px;">
             <form th:action="@{/comercial/clientes}" th:object="${editarClienteForm}" method="post">
 
-                <input type="hidden" th:field="*{codigo}">
+                <!-- El NIT es la llave primaria: se muestra pero no se edita -->
+                <input type="hidden" th:field="*{nit}">
+                <div class="mb-2">
+                    <label class="form-label small">NIT</label>
+                    <input type="text" class="form-control" th:value="*{nit}" disabled>
+                </div>
 
                 <div class="mb-2">
-                    <label class="form-label small">Nombre completo</label>
-                    <input type="text" class="form-control" th:field="*{nombre}"
+                    <label class="form-label small">Nombre o nombre de la empresa</label>
+                    <input type="text" class="form-control" th:field="*{nombre}" maxlength="150"
                            th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
                 </div>
 
                 <div class="mb-2">
+                    <label class="form-label small">Razón social</label>
+                    <input type="text" class="form-control" th:field="*{razonSocial}" maxlength="150"
+                           th:classappend="${#fields.hasErrors('razonSocial')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('razonSocial')}" th:errors="*{razonSocial}"></div>
+                </div>
+
+                <div class="mb-2">
                     <label class="form-label small">Correo electrónico</label>
-                    <input type="email" class="form-control" th:field="*{correo}"
+                    <input type="email" class="form-control" th:field="*{correo}" maxlength="100"
                            th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
                 </div>
 
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small">Celular</label>
+                        <input type="tel" class="form-control" th:field="*{celular}" maxlength="16" placeholder="3001234567" autocomplete="tel"
+                               th:classappend="${#fields.hasErrors('celular')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('celular')}" th:errors="*{celular}"></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Otro teléfono</label>
+                        <input type="tel" class="form-control" th:field="*{telefono}" maxlength="16" placeholder="6076851234 o 3xx..."
+                               th:classappend="${#fields.hasErrors('telefono')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
+                    </div>
+                </div>
+
                 <div class="mb-2">
-                    <label class="form-label small">Teléfono</label>
-                    <input type="text" class="form-control" th:field="*{telefono}">
+                    <label class="form-label small">Dirección</label>
+                    <input type="text" class="form-control" th:field="*{direccion}" maxlength="200"
+                           th:classappend="${#fields.hasErrors('direccion')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small">Dirección</label>
-                    <input type="text" class="form-control" th:field="*{direccion}">
+                    <label class="form-label small">Estado de la cuenta</label>
+                    <select class="form-select" th:field="*{estadoCliente}">
+                        <option value="ACTIVO">Activo</option>
+                        <option value="INACTIVO">Inactivo (no puede iniciar sesión)</option>
+                    </select>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -69,7 +81,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </div>
 
 </body>

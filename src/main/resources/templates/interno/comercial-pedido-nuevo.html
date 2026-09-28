@@ -1,53 +1,56 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Nuevo pedido — Universo Empaques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Nuevo pedido')}"></head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-    <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-ue">Cargo: Comercial</span>
-        <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-        </form>
-    </div>
-</nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="d-flex">
-    <div class="sidebar p-3" style="width:230px;">
-        <div class="nav flex-column gap-1">
-            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
-            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
-            <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
-        </div>
-    </div>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-pedidos')}"></aside>
 
-    <div class="flex-grow-1 p-4">
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <h4 class="mb-4">Registrar pedido</h4>
 
-        <div class="card p-4" style="max-width:480px;">
+        <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
+
+        <div class="card p-4" style="max-width:520px;">
             <form th:action="@{/comercial/pedidos}" th:object="${registrarPedidoForm}" method="post">
 
                 <div class="mb-2">
                     <label class="form-label small">Cliente</label>
-                    <select class="form-select" th:field="*{codigoCliente}"
-                            th:classappend="${#fields.hasErrors('codigoCliente')} ? 'is-invalid'">
+                    <select class="form-select" th:field="*{nitCliente}"
+                            th:classappend="${#fields.hasErrors('nitCliente')} ? 'is-invalid'">
                         <option value="">-- Selecciona un cliente --</option>
-                        <option th:each="c : ${clientes}" th:value="${c.codigo}" th:text="${c.nombre + ' (' + c.correo + ')'}"></option>
+                        <option th:each="c : ${clientes}" th:value="${c.nit}"
+                                th:text="${c.nombre + ' — NIT ' + c.nit}"></option>
                     </select>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoCliente')}" th:errors="*{codigoCliente}"></div>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nitCliente')}" th:errors="*{nitCliente}"></div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Fecha de entrega estimada</label>
+                    <input type="date" class="form-control" th:field="*{fechaEntrega}"
+                           th:attr="min=${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"
+                           th:classappend="${#fields.hasErrors('fechaEntrega')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaEntrega')}" th:errors="*{fechaEntrega}"></div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Forma de pago</label>
+                    <select class="form-select" th:field="*{formaPago}">
+                        <option value="">-- Por definir --</option>
+                        <option value="Contado">Contado</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Crédito 30 días">Crédito 30 días</option>
+                        <option value="50% anticipo">50% anticipo</option>
+                    </select>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small">Fecha de entrega estimada</label>
-                    <input type="date" class="form-control" th:field="*{fechaEntrega}">
+                    <label class="form-label small">Dirección de entrega</label>
+                    <input type="text" class="form-control" th:field="*{direccionEntrega}" maxlength="200"
+                           placeholder="Vacío = dirección registrada del cliente">
                 </div>
 
                 <div class="d-flex gap-2">
@@ -60,7 +63,7 @@
         <p class="text-muted small mt-3">
             Después de crear el pedido podrás agregarle los productos y cantidades desde su pantalla de detalle.
         </p>
-    </div>
+    </main>
 </div>
 
 </body>

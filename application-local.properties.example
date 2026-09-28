@@ -1,0 +1,41 @@
+# =====================================================================
+# PLANTILLA del archivo de configuracion PERSONAL.
+#
+# 1. Copien este archivo en la misma carpeta con el nombre:
+#        application-local.properties
+#    (Mac/Linux:  cp application-local.properties.example application-local.properties
+#     Windows:    copy application-local.properties.example application-local.properties)
+# 2. Quiten el "#" solo de las lineas que necesiten cambiar.
+#
+# application-local.properties NO se sube a Git (esta en .gitignore),
+# asi que aqui si pueden poner su contrasena. Si todo les sirve con los
+# valores por defecto, no necesitan crear el archivo.
+# =====================================================================
+
+# ---- MySQL (por defecto: localhost:3306, root / universo123) ----
+#db.contrasena=la_contrasena_de_su_mysql
+#db.usuario=root
+#db.puerto=3306
+#db.host=localhost
+
+# ---- Puerto de la app, si el 8080 esta ocupado ----
+#server.port=8081
+
+# ---- Ver en consola las consultas SQL (util para depurar) ----
+#spring.jpa.show-sql=true
+
+# ---- Correo para las notificaciones (RF-16) ----
+# Con Gmail se usa una "contrasena de aplicacion", no la normal.
+#spring.mail.username=correo@gmail.com
+#spring.mail.password=xxxx xxxx xxxx xxxx
+
+# ---- Copia de seguridad (RF-19), solo en el computador servidor ----
+#backup.activo=true
+# Windows con MySQL instalado:
+#backup.ruta-mysqldump=C:/Program Files/MySQL/MySQL Server 8.0/bin/mysqldump.exe
+#backup.ruta-mysql=C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe
+# Mac con MySQL en Docker: instalar el cliente con  brew install mysql-client
+#backup.ruta-mysqldump=/opt/homebrew/opt/mysql-client/bin/mysqldump
+#backup.ruta-mysql=/opt/homebrew/opt/mysql-client/bin/mysql
+# Carpeta extra para una segunda copia (USB, OneDrive...):
+#backup.directorio-copia=D:/RespaldosUniverso

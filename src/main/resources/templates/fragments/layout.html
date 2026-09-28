@@ -1,0 +1,241 @@
+<!doctype html>
+<!--
+  Piezas comunes de TODAS las pantallas internas (Thymeleaf "fragments").
+  Cada vista las incluye con th:replace, asi el menu, la barra superior y
+  el <head> se cambian en UN solo lugar y se ven igual en todas partes.
+
+  Uso en una vista:
+    <head th:replace="~{fragments/layout :: head('Clientes')}"></head>
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="layout">
+      <aside th:replace="~{fragments/layout :: sidebar('comercial-clientes')}"></aside>
+      <main class="contenido"> ... </main>
+    </div>
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <title th:text="${titulo} + ' — Universo Empaques'">Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
+    <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
+</head>
+
+<body>
+
+<!-- ============ Barra superior ============ -->
+<nav th:fragment="navbar" class="navbar navbar-dark navbar-ue px-3 px-md-4">
+    <a class="navbar-brand py-0" th:href="@{/mi-panel}" title="Ir a mi inicio">
+        <img th:src="@{/img/logo-blanco.png}" alt="Universo Empaques" class="logo-nav">
+    </a>
+    <div class="d-flex align-items-center gap-2 gap-md-3" sec:authorize="isAuthenticated()">
+        <span class="badge bg-ue" th:text="${#authentication.principal.cargo}">Cargo</span>
+        <span class="text-white small d-none d-md-inline" th:text="${#authentication.principal.nombreParaSaludo}">Nombre</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Salir</button>
+        </form>
+    </div>
+</nav>
+
+<!-- ============ Menu lateral (segun el rol) ============ -->
+<aside th:fragment="sidebar(activo)" class="sidebar">
+    <nav class="nav flex-column gap-1">
+
+        <th:block sec:authorize="hasRole('CLIENTE')">
+            <a class="nav-link" th:classappend="${activo == 'cliente-panel'} ? 'active'" th:href="@{/cliente/panel}">Mi panel</a>
+            <a class="nav-link" th:classappend="${activo == 'cliente-cotizaciones'} ? 'active'" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+            <a class="nav-link" th:classappend="${activo == 'cliente-pedidos'} ? 'active'" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+        </th:block>
+
+        <th:block sec:authorize="hasRole('ADMIN')">
+            <div class="sidebar-titulo">Administración</div>
+            <a class="nav-link" th:classappend="${activo == 'admin-panel'} ? 'active'" th:href="@{/admin/panel}">Inicio</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-usuarios'} ? 'active'" th:href="@{/admin/usuarios}">Usuarios</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-reportes'} ? 'active'" th:href="@{/admin/reportes}">Reportes</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-respaldos'} ? 'active'" th:href="@{/admin/respaldos}">Copias de seguridad</a>
+        </th:block>
+
+        <th:block sec:authorize="hasAnyRole('ADMIN','COMERCIAL')">
+            <div class="sidebar-titulo" sec:authorize="hasRole('ADMIN')">Comercial</div>
+            <a class="nav-link" th:classappend="${activo == 'comercial-panel'} ? 'active'" th:href="@{/comercial/panel}">
+                <span sec:authorize="hasRole('ADMIN')">Panel comercial</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
+            </a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-clientes'} ? 'active'" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-cotizaciones'} ? 'active'" th:href="@{/comercial/cotizaciones}">Cotizaciones</a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-pedidos'} ? 'active'" th:href="@{/comercial/pedidos}">Pedidos</a>
+        </th:block>
+
+        <th:block sec:authorize="hasRole('ADMIN')">
+            <div class="sidebar-titulo">Otras áreas</div>
+        </th:block>
+        <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','DISENO')"
+           th:classappend="${activo == 'diseno-panel'} ? 'active'" th:href="@{/diseno/panel}">
+            <span sec:authorize="hasRole('ADMIN')">Diseño</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
+        </a>
+        <a class="nav-link" sec:authorize="hasRole('DISENO')"
+           th:classappend="${activo == 'diseno-pedidos'} ? 'active'" th:href="@{/diseno/pedidos}">Pedidos</a>
+        <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','PRODUCCION')"
+           th:classappend="${activo == 'produccion-panel'} ? 'active'" th:href="@{/produccion/panel}">
+            <span sec:authorize="hasRole('ADMIN')">Producción</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
+        </a>
+        <a class="nav-link" sec:authorize="hasRole('PRODUCCION')"
+           th:classappend="${activo == 'produccion-pedidos'} ? 'active'" th:href="@{/produccion/pedidos}">Pedidos</a>
+        <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','BODEGA')"
+           th:classappend="${activo == 'bodega-panel'} ? 'active'" th:href="@{/bodega/panel}">
+            <span sec:authorize="hasRole('ADMIN')">Bodega</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
+        </a>
+        <a class="nav-link" sec:authorize="hasRole('BODEGA')"
+           th:classappend="${activo == 'bodega-pedidos'} ? 'active'" th:href="@{/bodega/pedidos}">Pedidos</a>
+    </nav>
+</aside>
+
+<!-- ============ Barra de progreso del pedido (RF-15) ============
+     Necesita "estadosPedido" (lo pone VistasAdvice en todas las vistas). -->
+<div th:fragment="progreso(estadoActual)" class="progreso-pedido">
+    <div th:each="e : ${estadosPedido}" class="paso"
+         th:classappend="${estadoActual != null and e.ordinal() lt estadoActual.estado.ordinal()} ? 'hecho' :
+                         (${estadoActual != null and e == estadoActual.estado} ? 'actual' : '')">
+        <div class="punto"></div>
+        <div class="nombre" th:text="${e.etiqueta}">Estado</div>
+    </div>
+</div>
+
+<!-- ============ Historial de estados del pedido ============ -->
+<ul th:fragment="historial(historial)" class="linea-tiempo list-unstyled small mb-0">
+    <li th:each="h : ${historial}">
+        <span class="status-pill" th:classappend="${h.estado.claseCss}" th:text="${h.estado.etiqueta}">Estado</span>
+        <div class="text-muted mt-1"
+             th:text="${#temporals.format(h.fechaInicio, 'dd/MM/yyyy HH:mm')} + (${h.usuario != null} ? ' · ' + ${h.usuario.nombre} : '')">Fecha</div>
+        <div th:if="${h.reporte != null}" class="mt-1" th:text="'“' + ${h.reporte} + '”'">Reporte</div>
+    </li>
+</ul>
+
+<!-- ============ Boton para pasar el pedido a la siguiente etapa (RF-14) ============ -->
+<div th:fragment="avanzar(area, pedido, estadoActual, puedeAvanzar)" class="card p-3">
+    <th:block th:if="${estadoActual != null and estadoActual.estado.esFinal()}">
+        <h6 class="mb-1">Pedido entregado</h6>
+        <p class="text-muted small mb-0">Este pedido completó todas sus etapas.</p>
+    </th:block>
+    <th:block th:if="${estadoActual != null and !estadoActual.estado.esFinal()}">
+        <h6 class="mb-1">Siguiente paso</h6>
+        <p class="text-muted small mb-2">
+            Pasa a <strong th:text="${estadoActual.estado.siguiente().etiqueta}">-</strong>.
+            Responsable: <span th:text="${estadoActual.estado.areaResponsable == 'DISENO' ? 'Diseño' : (estadoActual.estado.areaResponsable == 'PRODUCCION' ? 'Producción' : #strings.capitalize(#strings.toLowerCase(estadoActual.estado.areaResponsable)))}">-</span>.
+        </p>
+        <form th:if="${puedeAvanzar}" th:action="@{/{a}/pedidos/{id}/avanzar(a=${area}, id=${pedido.codigo})}" method="post">
+            <textarea name="reporte" class="form-control form-control-sm mb-2" rows="2" maxlength="255"
+                      placeholder="Observación para el historial y el cliente (opcional)"></textarea>
+            <button class="btn btn-ue w-100" th:text="${estadoActual.estado.accion}"
+                    onclick="return confirm('¿Confirmas pasar el pedido a la siguiente etapa?');">Avanzar</button>
+            <p class="text-muted small mt-2 mb-0">Al guardar, se le avisa al cliente por correo.</p>
+        </form>
+        <p th:unless="${puedeAvanzar}" class="small text-muted mb-0">Esta etapa la gestiona otra área.</p>
+    </th:block>
+</div>
+
+<!-- ============ Disenos de cada producto (RF-12 / RF-13) ============
+     puedeSubir: pantalla de Diseno con el pedido "En diseno".
+     puedeRevisar: pantalla de Comercial con el pedido "En diseno". -->
+<div th:fragment="disenos(grupos, pedido, puedeSubir, puedeRevisar)" class="card p-3 mb-3">
+    <h6 class="mb-1">Diseños</h6>
+    <p class="text-muted small mb-3" th:if="${puedeSubir}">
+        Sube el diseño de cada producto (PNG, JPG o PDF, máximo 64 KB). Comercial lo revisa con el cliente.
+    </p>
+    <p class="text-muted small mb-3" th:if="${puedeRevisar}">
+        Revisa la última versión de cada producto con el cliente: apruébala o pide ajustes a Diseño.
+        El pedido pasa a producción cuando todos los diseños estén aprobados.
+    </p>
+    <p class="text-muted small mb-3" th:if="${#lists.isEmpty(grupos)}">El pedido aún no tiene productos.</p>
+
+    <div th:each="g : ${grupos}" class="border rounded-3 p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+            <div>
+                <strong th:text="${g.detalle().producto.nombre}">Producto</strong>
+                <span class="text-muted small" th:text="' · ' + ${#numbers.formatInteger(g.detalle().cantidad, 1, 'POINT')} + ' und'">-</span>
+            </div>
+            <span th:if="${g.ultimo != null}" class="status-pill" th:classappend="${g.ultimo.estado.claseCss}"
+                  th:text="'v' + ${g.ultimo.version} + ' · ' + ${g.ultimo.estado.etiqueta}">Estado</span>
+            <span th:if="${g.ultimo == null}" class="text-muted small">Sin diseño todavía</span>
+        </div>
+
+        <!-- Versiones (la mas nueva primero) -->
+        <div th:each="d : ${g.versiones()}" class="d-flex align-items-start gap-3 py-2 border-top small">
+            <a th:href="@{/disenos/{id}/archivo(id=${d.codigo})}" target="_blank" class="miniatura-diseno flex-shrink-0">
+                <img th:if="${d.archivoImagen}"
+                     th:src="@{/disenos/{id}/archivo(id=${d.codigo})}" alt="Diseño">
+                <span th:unless="${d.archivoImagen}">PDF</span>
+            </a>
+            <div class="flex-grow-1">
+                <div>
+                    <strong th:text="'Versión ' + ${d.version}">Versión</strong>
+                    <span class="status-pill ms-1" th:classappend="${d.estado.claseCss}" th:text="${d.estado.etiqueta}">-</span>
+                </div>
+                <div class="text-muted" th:if="${d.usuario != null}"
+                     th:text="(${d.estado.name() == 'PENDIENTE'} ? 'Subido por ' : 'Revisado por ') + ${d.usuario.nombre}
+                              + (${d.fechaAprobado != null} ? ' · aprobado el ' + ${#temporals.format(d.fechaAprobado, 'dd/MM/yyyy')} : '')">-</div>
+                <div th:if="${d.color != null}" class="d-flex align-items-center gap-1 mt-1">
+                    <span class="muestra-color" th:style="'background:' + ${d.color}"></span>
+                    <span class="text-muted" th:text="${d.color}">rgb</span>
+                </div>
+                <div th:if="${d.observaciones != null}" class="mt-1" th:text="${d.observaciones}">Observaciones</div>
+                <div class="mt-1">
+                    <a class="text-ue" th:href="@{/disenos/{id}/archivo(id=${d.codigo})}" target="_blank">Ver archivo</a>
+                    <a th:if="${d.logo != null}" class="text-ue ms-2" th:href="@{/disenos/{id}/logo(id=${d.codigo})}" target="_blank">Ver logo</a>
+                </div>
+
+                <!-- RF-13: revisar la ultima version pendiente -->
+                <form th:if="${puedeRevisar and d == g.ultimo and d.estado.name() == 'PENDIENTE'}"
+                      th:action="@{/comercial/pedidos/{p}/disenos/{id}/revisar(p=${pedido.codigo}, id=${d.codigo})}"
+                      method="post" class="mt-2">
+                    <textarea name="comentario" class="form-control form-control-sm mb-2" rows="2" maxlength="200"
+                              placeholder="Comentario (obligatorio si pides ajustes)"></textarea>
+                    <div class="d-flex gap-2">
+                        <button name="decision" value="aprobar" class="btn btn-ue btn-sm">Aprobar</button>
+                        <button name="decision" value="ajustar" class="btn btn-outline-danger btn-sm">Pedir ajustes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RF-12: subir version nueva (si no hay una pendiente ni aprobada) -->
+        <form th:if="${puedeSubir and (g.ultimo == null or g.ultimo.estado.name() == 'AJUSTE_SOLICITADO')}"
+              th:action="@{/diseno/pedidos/{p}/disenos(p=${pedido.codigo})}" method="post" enctype="multipart/form-data"
+              class="border-top pt-3 mt-2">
+            <input type="hidden" name="codigoDetalle" th:value="${g.detalle().codigo}">
+            <div class="row g-2">
+                <div class="col-sm-6">
+                    <label class="form-label small mb-1">Archivo del diseño *</label>
+                    <input type="file" name="archivo" class="form-control form-control-sm" accept=".png,.jpg,.jpeg,.pdf" required>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label small mb-1">Logo del cliente <span class="text-muted">(opcional)</span></label>
+                    <input type="file" name="logo" class="form-control form-control-sm" accept=".png,.jpg,.jpeg,.pdf">
+                </div>
+                <div class="col-4 col-sm-2">
+                    <label class="form-label small mb-1">Color</label>
+                    <input type="color" name="color" class="form-control form-control-sm form-control-color w-100" value="#4b93b6">
+                </div>
+                <div class="col-8 col-sm-10">
+                    <label class="form-label small mb-1">Observaciones</label>
+                    <input type="text" name="observaciones" class="form-control form-control-sm" maxlength="150"
+                           th:placeholder="${g.ultimo != null} ? 'Qué cambió respecto a la versión anterior' : 'Detalles del diseño'">
+                </div>
+            </div>
+            <button class="btn btn-ue btn-sm mt-2"
+                    th:text="${g.ultimo == null} ? 'Subir diseño' : 'Subir versión ' + ${g.ultimo.version + 1}">Subir</button>
+        </form>
+    </div>
+</div>
+
+<!-- ============ Mensajes de exito / error (flash) ============ -->
+<th:block th:fragment="mensajes">
+    <div th:if="${exito}" class="alert alert-success py-2 small" th:text="${exito}"></div>
+    <div th:if="${error}" class="alert alert-danger py-2 small" th:text="${error}"></div>
+</th:block>
+
+</body>
+</html>

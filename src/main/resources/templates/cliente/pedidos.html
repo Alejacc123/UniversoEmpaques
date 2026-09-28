@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mis pedidos')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-pedidos')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Mis pedidos</h4>
+            <a class="btn btn-ue btn-sm" th:href="@{/cliente/pedidos/nuevo}">+ Solicitar pedido</a>
+        </div>
+
+        <div class="card p-3 table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>N.º</th><th>Registrado</th><th>Entrega estimada</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pedidos}" th:with="e=${pedidoService.estadoActual(p)}">
+                    <td th:text="'PED-' + ${p.codigo}">PED-1</td>
+                    <td th:text="${#temporals.format(p.fechaRegistro, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${p.fechaEntrega != null ? #temporals.format(p.fechaEntrega, 'dd/MM/yyyy') : 'Por definir'}">-</td>
+                    <td>
+                        <span th:if="${e != null}" class="status-pill" th:classappend="${e.estado.claseCss}" th:text="${e.estado.etiqueta}">Estado</span>
+                    </td>
+                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/cliente/pedidos/{id}(id=${p.codigo})}">Ver avance</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="5" class="text-muted text-center py-3">
+                        Aún no tienes pedidos. Puedes solicitar uno con productos del catálogo o pedir una cotización.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

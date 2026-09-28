@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,18 +19,38 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * RF-19: copia de seguridad de la base de datos (autora: Amelie).
+ *
+ * Estrategia: una copia TOTAL (mensual.sql, la que se entrega al ente
+ * externo; se sobrescribe, no se guarda un historico), una COMPLETA
+ * semanal (semanal.sql) y, los demas dias, una PARCIAL solo con las
+ * tablas que cambiaron desde la semanal (parcial_<dia>.sql).
+ *
+ * Agregado para la interfaz del administrador (AdminRespaldoController):
+ *  - "Hacer copia ahora" hace una copia TOTAL que reemplaza mensual.sql
+ *    (no toca la semanal ni las parciales, para no romper su logica).
+ *  - La copia automatica (encendida/apagada, hora y segunda carpeta) se
+ *    configura desde la pantalla y se guarda en
+ *    <carpeta de respaldos>/configuracion.properties (propio de cada equipo).
+ *  - Estado de la ultima ejecucion, lista de archivos y descarga segura.
+ */
 @Service
 public class BackupService {
 
@@ -61,41 +82,108 @@ public class BackupService {
     private String universo123;
 
 
+    @Value("${backup.cron:0 0 19 * * *}")
+    private String cron;
+
     private final ReentrantLock candado = new ReentrantLock();
 
+    /** Programador de Spring: permite cambiar la hora sin reiniciar la app. */
+    private final TaskScheduler programador;
+    private volatile ScheduledFuture<?> tareaProgramada;
 
-    @Scheduled(cron = "${backup.cron:0 0 19 * * *}")
-    public void respaldoProgramado() {
-        if (activo) respaldarAhora();
+    public BackupService(TaskScheduler programador) {
+        this.programador = programador;
+    }
+
+    // ---- Estado de la ultima ejecucion (lo muestra la pantalla del admin) ----
+    private volatile LocalDateTime ultimaEjecucion;
+    private volatile boolean ultimaExitosa;
+    private volatile String ultimoMensaje = "Aún no se ha ejecutado ninguna copia desde que arrancó la aplicación.";
+
+    /** Un archivo de respaldo, para listarlo en pantalla. */
+    public record ArchivoRespaldo(String nombre, String tipo, long tamanoBytes, LocalDateTime modificado) {
+        public String getTamanoLegible() {
+            if (tamanoBytes < 1024) return tamanoBytes + " B";
+            if (tamanoBytes < 1024 * 1024) return String.format("%.1f KB", tamanoBytes / 1024.0);
+            return String.format("%.1f MB", tamanoBytes / (1024.0 * 1024));
+        }
     }
 
 
+    /** Al arrancar: lee la configuracion guardada, programa la copia automatica y, si hace falta, respalda. */
     @EventListener(ApplicationReadyEvent.class)
     public void respaldoAlArrancar() {
+        cargarConfiguracionGuardada();
+        programar();
         if (activo && !hayCopiaDeHoy()) respaldarAhora();
     }
 
+    /** (Re)programa la copia automatica segun "activo" y "cron". */
+    private synchronized void programar() {
+        if (tareaProgramada != null) {
+            tareaProgramada.cancel(false);
+            tareaProgramada = null;
+        }
+        if (activo) {
+            tareaProgramada = programador.schedule(this::respaldarAhora, new CronTrigger(cron));
+            log.info("Copia automática programada: {}", getHorarioLegible());
+        }
+    }
 
-    public void respaldarAhora() {
+    /**
+     * Boton "Hacer copia ahora": copia TOTAL de la base que reemplaza
+     * mensual.sql. No toca semanal.sql, su manifiesto ni las parciales,
+     * asi la estrategia automatica sigue teniendo sentido.
+     */
+    public boolean respaldarTotal() {
+        return conCandado(opciones -> {
+            Path carpeta = Files.createDirectories(Paths.get(directorio).toAbsolutePath());
+            respaldoCompleto(opciones, carpeta, true, false);
+            return "Copia total lista: se actualizó mensual.sql.";
+        });
+    }
+
+    /**
+     * Copia automatica (la del horario): decide sola si toca mensual,
+     * semanal o parcial. Devuelve true si salio bien.
+     */
+    public boolean respaldarAhora() {
+        return conCandado(this::respaldar);
+    }
+
+    @FunctionalInterface
+    private interface Operacion {
+        String ejecutar(Path opciones) throws IOException;
+    }
+
+    /** Evita dos copias al tiempo y guarda el resultado para la pantalla. */
+    private boolean conCandado(Operacion operacion) {
         if (!candado.tryLock()) {
             log.warn("Ya hay un respaldo en curso; se omite este.");
-            return;
+            ultimoMensaje = "Ya había una copia en curso; espera unos segundos y revisa la lista.";
+            return false;
         }
         Path opciones = null;
         try {
             opciones = crearArchivoOpciones();
-            respaldar(opciones);
+            ultimoMensaje = operacion.ejecutar(opciones);
+            ultimaExitosa = true;
+            return true;
         } catch (Exception e) {
             // Un respaldo fallido nunca debe tumbar la aplicacion.
             log.error("Fallo el respaldo: {}", e.getMessage());
+            ultimaExitosa = false;
+            ultimoMensaje = e.getMessage();
+            return false;
         } finally {
+            ultimaEjecucion = LocalDateTime.now();
             borrarSilencioso(opciones);
             candado.unlock();
         }
     }
 
 
-    private void respaldar(Path opciones) throws IOException {
+    private String respaldar(Path opciones) throws IOException {
         Path carpeta = Files.createDirectories(Paths.get(directorio).toAbsolutePath());
         Path mensual = carpeta.resolve("mensual.sql");
         Path semanal = carpeta.resolve("semanal.sql");
@@ -109,8 +197,11 @@ public class BackupService {
 
         if (mensualDebido || semanalDebido) {
             respaldoCompleto(opciones, carpeta, mensualDebido, semanalDebido);
+            return "Copia completa lista (" + (mensualDebido ? "mensual" : "")
+                    + (mensualDebido && semanalDebido ? " y " : "") + (semanalDebido ? "semanal" : "") + ").";
         } else {
             respaldoParcial(opciones, carpeta, hoy);
+            return "Copia parcial lista (solo las tablas que cambiaron desde la semanal).";
         }
     }
 
@@ -251,7 +342,9 @@ public class BackupService {
         Files.writeString(archivo, "[client]\n"
                 + "user=\"" + escapar(root) + "\"\n"
                 + "password=\"" + escapar(universo123) + "\"\n"
-                + "host=\"" + escapar(host) + "\"\n"
+                // "localhost" haria que mysqldump use un socket local en Mac/Linux
+                // (que no existe con MySQL en Docker); 127.0.0.1 fuerza TCP.
+                + "host=\"" + escapar("localhost".equalsIgnoreCase(host) ? "127.0.0.1" : host) + "\"\n"
                 + "port=" + puerto + "\n", StandardCharsets.UTF_8);
         return archivo;
     }
@@ -283,6 +376,152 @@ public class BackupService {
             // Que falle la segunda copia (ej. USB desconectada) no invalida la principal.
             log.warn("No se pudo copiar {} a '{}': {}", origen.getFileName(), directorioCopia, e.getMessage());
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Para la pantalla del administrador
+    // ------------------------------------------------------------------
+
+    /** Archivos .sql de la carpeta de respaldos, del mas reciente al mas viejo. */
+    public List<ArchivoRespaldo> listarArchivos() {
+        Path carpeta = Paths.get(directorio).toAbsolutePath();
+        if (!Files.isDirectory(carpeta)) return List.of();
+        try (Stream<Path> archivos = Files.list(carpeta)) {
+            return archivos
+                    .filter(p -> p.getFileName().toString().endsWith(".sql"))
+                    .map(p -> {
+                        try {
+                            return new ArchivoRespaldo(p.getFileName().toString(),
+                                    tipoDe(p.getFileName().toString()), Files.size(p),
+                                    LocalDateTime.ofInstant(Files.getLastModifiedTime(p).toInstant(), ZoneId.systemDefault()));
+                        } catch (IOException e) {
+                            return null;
+                        }
+                    })
+                    .filter(a -> a != null)
+                    .sorted(Comparator.comparing(ArchivoRespaldo::modificado).reversed())
+                    .toList();
+        } catch (IOException e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * Devuelve la ruta de un archivo de respaldo para descargarlo.
+     * Solo acepta nombres simples que esten DENTRO de la carpeta de
+     * respaldos (evita que alguien pida "../../algo" por la URL).
+     */
+    public Path archivoParaDescargar(String nombre) {
+        if (nombre == null || !nombre.matches("^[A-Za-z0-9_-]+\\.sql$")) {
+            throw new IllegalArgumentException("Archivo no válido.");
+        }
+        Path carpeta = Paths.get(directorio).toAbsolutePath().normalize();
+        Path archivo = carpeta.resolve(nombre).normalize();
+        if (!archivo.startsWith(carpeta) || !Files.isRegularFile(archivo)) {
+            throw new IllegalArgumentException("El archivo no existe.");
+        }
+        return archivo;
+    }
+
+    private static String tipoDe(String nombre) {
+        if (nombre.equals("mensual.sql")) return "Total (para el ente externo)";
+        if (nombre.equals("semanal.sql")) return "Completa semanal";
+        if (nombre.startsWith("parcial_")) {
+            String dia = nombre.substring(nombre.indexOf('-') + 1, nombre.length() - 4);
+            return "Parcial del " + dia;
+        }
+        return "Otro";
+    }
+
+    // ------------------------------------------------------------------
+    // Configuracion editable desde la pantalla del administrador
+    // ------------------------------------------------------------------
+
+    private Path archivoConfiguracion() {
+        return Paths.get(directorio).toAbsolutePath().resolve("configuracion.properties");
+    }
+
+    /** Si el admin ya configuro algo desde la pantalla, eso manda sobre application.properties. */
+    private void cargarConfiguracionGuardada() {
+        Path archivo = archivoConfiguracion();
+        if (!Files.isRegularFile(archivo)) return;
+        try {
+            Properties p = cargarManifiesto(archivo);
+            activo = Boolean.parseBoolean(p.getProperty("activo", String.valueOf(activo)));
+            cron = p.getProperty("cron", cron);
+            directorioCopia = p.getProperty("directorio-copia", directorioCopia);
+            log.info("Configuración de respaldos cargada de {}", archivo);
+        } catch (IOException e) {
+            log.warn("No se pudo leer {}: {}", archivo, e.getMessage());
+        }
+    }
+
+    /**
+     * Guarda la configuracion elegida en la pantalla y reprograma la
+     * copia automatica al instante (sin reiniciar la app).
+     *
+     * @param hora           "HH:mm", la copia se hace todos los dias a esa hora
+     * @param carpetaCopia   segunda carpeta opcional; vacio = sin segunda copia
+     */
+    public synchronized void guardarConfiguracion(boolean nuevoActivo, LocalTime hora, String carpetaCopia) throws IOException {
+        String copia = carpetaCopia == null ? "" : carpetaCopia.trim();
+        if (!copia.isEmpty()) {
+            Path destino = Paths.get(copia).toAbsolutePath().normalize();
+            try {
+                Files.createDirectories(destino);
+            } catch (IOException | SecurityException e) {
+                throw new IllegalArgumentException("No se pudo crear la carpeta de la segunda copia: " + destino);
+            }
+            if (!Files.isWritable(destino)) {
+                throw new IllegalArgumentException("No hay permiso para escribir en: " + destino);
+            }
+            if (destino.equals(Paths.get(directorio).toAbsolutePath().normalize())) {
+                throw new IllegalArgumentException("La segunda copia debe ir en una carpeta distinta a la principal.");
+            }
+            copia = destino.toString();
+        }
+        activo = nuevoActivo;
+        cron = String.format("0 %d %d * * *", hora.getMinute(), hora.getHour());
+        directorioCopia = copia;
+
+        Properties p = new Properties();
+        p.setProperty("activo", String.valueOf(activo));
+        p.setProperty("cron", cron);
+        p.setProperty("directorio-copia", directorioCopia);
+        Path archivo = archivoConfiguracion();
+        Files.createDirectories(archivo.getParent());
+        try (Writer w = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
+            p.store(w, "Configuracion de copias de seguridad (se edita desde la app: Administracion > Copias de seguridad)");
+        }
+        programar();
+    }
+
+    /** Hora de la copia automatica, si el horario es diario simple (para el formulario). */
+    public LocalTime getHoraAutomatica() {
+        String[] p = cron.trim().split("\\s+");
+        if (p.length == 6 && p[1].matches("\\d+") && p[2].matches("\\d+")) {
+            return LocalTime.of(Integer.parseInt(p[2]), Integer.parseInt(p[1]));
+        }
+        return LocalTime.of(19, 0);
+    }
+
+    public boolean isActivo() { return activo; }
+    public String getCron() { return cron; }
+    public String getDirectorioAbsoluto() { return Paths.get(directorio).toAbsolutePath().normalize().toString(); }
+    public String getDirectorioCopia() { return directorioCopia; }
+    public String getRutaMysqldump() { return rutaMysqldump; }
+    public LocalDateTime getUltimaEjecucion() { return ultimaEjecucion; }
+    public boolean isUltimaExitosa() { return ultimaExitosa; }
+    public String getUltimoMensaje() { return ultimoMensaje; }
+
+    /** "0 0 19 * * *" -> "Todos los días a las 19:00" (para los horarios diarios simples). */
+    public String getHorarioLegible() {
+        String[] p = cron.trim().split("\\s+");
+        if (p.length == 6 && p[3].equals("*") && p[4].equals("*") && p[5].equals("*")
+                && p[1].matches("\\d+") && p[2].matches("\\d+")) {
+            return String.format("Todos los días a las %02d:%02d", Integer.parseInt(p[2]), Integer.parseInt(p[1]));
+        }
+        return "Según la expresión cron: " + cron;
     }
 
     private boolean hayCopiaDeHoy() {

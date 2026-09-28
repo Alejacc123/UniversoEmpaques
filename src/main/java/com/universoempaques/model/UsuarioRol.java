@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Tabla puente: relacion muchos-a-muchos entre Usuario y Rol,
- * tal como la diseño Amelie en el modelo v2.
+ * Tabla puente "UsuarioRol": que rol(es) tiene cada usuario.
+ * Se crea y se borra desde Usuario (cascade), no tiene repositorio propio.
  */
 @Entity
-@Table(name = "usuario_rol")
+@Table(name = "UsuarioRol")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,14 +18,19 @@ public class UsuarioRol {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo")
+    @Column(name = "Codigo")
     private Integer codigo;
 
     @ManyToOne
-    @JoinColumn(name = "codigo_usuario")
+    @JoinColumn(name = "CodigoUsuario")
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "codigo_rol")
+    @JoinColumn(name = "CodigoRol")
     private Rol rol;
+
+    public UsuarioRol(Usuario usuario, Rol rol) {
+        this.usuario = usuario;
+        this.rol = rol;
+    }
 }

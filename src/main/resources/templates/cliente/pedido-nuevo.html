@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Solicitar pedido')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-pedidos')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <a class="small text-ue text-decoration-none" th:href="@{/cliente/pedidos}">&larr; Volver a mis pedidos</a>
+        <h4 class="mt-2 mb-1">Solicitar pedido</h4>
+        <p class="text-muted small mb-4">
+            Si ya sabes qué productos del catálogo necesitas, pídelos aquí directamente.
+            ¿Necesitas algo a la medida? Mejor <a class="text-ue" th:href="@{/cliente/cotizaciones/nueva}">solicita una cotización</a>.
+        </p>
+
+        <form th:action="@{/cliente/pedidos}" th:object="${solicitarPedidoForm}" method="post">
+            <div th:if="${#fields.hasErrors('cantidades*')}" class="alert alert-danger py-2 small">Revisa las cantidades: solo números enteros.</div>
+
+            <div class="card p-3 mb-3 table-responsive">
+                <h6 class="mb-3">Productos</h6>
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="text-muted small">
+                    <tr><th>Producto</th><th>Forma / tamaño</th><th class="text-end">Precio unit.</th><th style="width:140px">Cantidad</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${productos}">
+                        <td>
+                            <div th:text="${p.nombre}">Producto</div>
+                            <div class="text-muted small" th:text="${p.material}">Material</div>
+                        </td>
+                        <td class="small" th:text="${(p.forma ?: '—') + ' · ' + (p.tamano ?: '—')}">-</td>
+                        <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(p.precio, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                        <td>
+                            <input type="number" min="0" max="1000000" step="1" class="form-control form-control-sm" placeholder="0"
+                                   th:name="'cantidades[' + ${p.codigo} + ']'"
+                                   th:value="${solicitarPedidoForm.cantidades[p.codigo]}">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card p-3 mb-3" style="max-width:620px;">
+                <h6 class="mb-3">Entrega</h6>
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small">Fecha deseada de entrega <span class="text-muted">(opcional)</span></label>
+                        <input type="date" class="form-control" th:field="*{fechaEntrega}"
+                               th:attr="min=${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Forma de pago</label>
+                        <select class="form-select" th:field="*{formaPago}">
+                            <option value="">-- Por definir --</option>
+                            <option value="Contado">Contado</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Crédito 30 días">Crédito 30 días</option>
+                            <option value="50% anticipo">50% anticipo</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small">Dirección de entrega</label>
+                        <input type="text" class="form-control" th:field="*{direccionEntrega}" maxlength="200"
+                               th:classappend="${#fields.hasErrors('direccionEntrega')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('direccionEntrega')}" th:errors="*{direccionEntrega}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-muted small">Los precios son de referencia; el área comercial confirma tu pedido antes de pasarlo a diseño.</p>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-ue">Enviar pedido</button>
+                <a class="btn btn-outline-secondary" th:href="@{/cliente/pedidos}">Cancelar</a>
+            </div>
+        </form>
+    </main>
+</div>
+
+</body>
+</html>

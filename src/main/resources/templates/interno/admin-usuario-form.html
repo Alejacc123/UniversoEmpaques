@@ -1,85 +1,113 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Usuario — Universo Empaques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Usuario')}"></head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-    <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-ue">Cargo: Administrador</span>
-        <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-        </form>
-    </div>
-</nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="d-flex">
-    <div class="sidebar p-3" style="width:230px;">
-        <div class="nav flex-column gap-1">
-            <a class="nav-link" th:href="@{/admin/panel}">Inicio</a>
-            <a class="nav-link active" th:href="@{/admin/usuarios}">Usuarios</a>
-        </div>
-    </div>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('admin-usuarios')}"></aside>
 
-    <div class="flex-grow-1 p-4">
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <h4 class="mb-4" th:text="${esEdicion} ? 'Editar usuario' : 'Registrar nuevo usuario'">Registrar usuario</h4>
 
         <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
 
-        <div class="card p-4" style="max-width:520px;">
+        <div class="card p-4" style="max-width:720px;">
             <form th:action="@{/admin/usuarios}" th:object="${registrarUsuarioForm}" method="post">
 
                 <input type="hidden" th:field="*{codigo}">
 
-                <div class="mb-2">
-                    <label class="form-label small">Nombre completo</label>
-                    <input type="text" class="form-control" th:field="*{nombre}"
-                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                <h6 class="text-ue mb-2">Datos de acceso</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Nombre completo</label>
+                        <input type="text" class="form-control" th:field="*{nombre}" maxlength="100"
+                               th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Correo electrónico</label>
+                        <input type="email" class="form-control" th:field="*{correo}" maxlength="100"
+                               th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">
+                            Contraseña
+                            <span th:if="${esEdicion}" class="text-muted">(en blanco = no cambiarla)</span>
+                        </label>
+                        <input type="password" class="form-control" th:field="*{contrasena}" maxlength="64" autocomplete="new-password"
+                               th:classappend="${#fields.hasErrors('contrasena')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('contrasena')}" th:errors="*{contrasena}"></div>
+                        <div class="form-text" th:unless="${#fields.hasErrors('contrasena')}">Mínimo 8 caracteres, con letras y números.</div>
+                    </div>
                 </div>
 
-                <div class="mb-2">
-                    <label class="form-label small">Correo electrónico</label>
-                    <input type="email" class="form-control" th:field="*{correo}"
-                           th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+                <h6 class="text-ue mb-2">Cargo y permisos</h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Rol (nivel de permisos)</label>
+                        <select class="form-select" th:field="*{codigoRol}"
+                                th:classappend="${#fields.hasErrors('codigoRol')} ? 'is-invalid'">
+                            <option value="">-- Selecciona un rol --</option>
+                            <option th:each="r : ${roles}" th:value="${r.codigo}" th:text="${r.nombre}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoRol')}" th:errors="*{codigoRol}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Área (obligatoria para Empleado)</label>
+                        <select class="form-select" th:field="*{codigoArea}">
+                            <option value="">-- Sin área --</option>
+                            <option th:each="a : ${areas}" th:value="${a.codigo}" th:text="${a.nombreVisible}"></option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="mb-2">
-                    <label class="form-label small">Teléfono</label>
-                    <input type="text" class="form-control" th:field="*{telefono}">
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label small">
-                        Contraseña
-                        <span th:if="${esEdicion}" class="text-muted">(déjala en blanco para no cambiarla)</span>
-                    </label>
-                    <input type="password" class="form-control" th:field="*{contrasena}">
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label small">Rol (nivel de permisos)</label>
-                    <select class="form-select" th:field="*{codigoRol}">
-                        <option value="">-- Selecciona un rol --</option>
-                        <option th:each="r : ${roles}" th:value="${r.codigo}" th:text="${r.nombre}"></option>
-                    </select>
-                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('codigoRol')}" th:errors="*{codigoRol}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small">Área / Cargo (opcional para Administrador)</label>
-                    <select class="form-select" th:field="*{codigoArea}">
-                        <option value="">-- Sin área --</option>
-                        <option th:each="a : ${areas}" th:value="${a.codigo}" th:text="${a.tipo}"></option>
-                    </select>
+                <h6 class="text-ue mb-2">Datos laborales <span class="text-muted small fw-normal">(opcionales)</span></h6>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small">N.º de documento</label>
+                        <input type="text" class="form-control" th:field="*{numDocumento}" inputmode="numeric" maxlength="10"
+                               th:classappend="${#fields.hasErrors('numDocumento')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('numDocumento')}" th:errors="*{numDocumento}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Celular personal</label>
+                        <input type="tel" class="form-control" th:field="*{telefonoPersonal}" maxlength="16" placeholder="3001234567" autocomplete="tel"
+                               th:classappend="${#fields.hasErrors('telefonoPersonal')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('telefonoPersonal')}" th:errors="*{telefonoPersonal}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Teléfono de empresa</label>
+                        <input type="tel" class="form-control" th:field="*{telefonoEmpresa}" maxlength="16" placeholder="6076851234 o 3xx..."
+                               th:classappend="${#fields.hasErrors('telefonoEmpresa')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('telefonoEmpresa')}" th:errors="*{telefonoEmpresa}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Fecha de ingreso</label>
+                        <input type="date" class="form-control" th:field="*{fechaIngreso}"
+                               th:attr="max=${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"
+                               th:classappend="${#fields.hasErrors('fechaIngreso')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('fechaIngreso')}" th:errors="*{fechaIngreso}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Vencimiento del contrato</label>
+                        <input type="date" class="form-control" th:field="*{fecVencimientoContrato}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Horas trabajadas</label>
+                        <input type="number" step="0.01" min="0" max="9999.99" class="form-control" th:field="*{cantHorasTrabajadas}"
+                               th:classappend="${#fields.hasErrors('cantHorasTrabajadas')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('cantHorasTrabajadas')}" th:errors="*{cantHorasTrabajadas}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Nómina (COP)</label>
+                        <input type="number" step="0.01" min="0" max="99999999.99" class="form-control" th:field="*{nomina}"
+                               th:classappend="${#fields.hasErrors('nomina')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('nomina')}" th:errors="*{nomina}"></div>
+                    </div>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -88,7 +116,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </div>
 
 </body>

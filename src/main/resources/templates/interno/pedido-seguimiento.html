@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Pedido')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar(${area + '-pedidos'})}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <a class="small text-ue text-decoration-none" th:href="@{/{a}/pedidos(a=${area})}">&larr; Volver a pedidos</a>
+        <div class="d-flex align-items-center gap-2 mt-2 mb-3 flex-wrap">
+            <h4 class="mb-0" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
+            <span th:if="${estadoActual != null}" class="status-pill" th:classappend="${estadoActual.estado.claseCss}"
+                  th:text="${estadoActual.estado.etiqueta}">Estado</span>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <div th:replace="~{fragments/layout :: progreso(${estadoActual})}"></div>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <dl class="row small mb-0">
+                <dt class="col-sm-3">Cliente</dt>
+                <dd class="col-sm-9" th:text="${pedido.cliente != null ? pedido.cliente.nombre + ' (NIT ' + pedido.cliente.nit + ')' : '—'}">-</dd>
+                <dt class="col-sm-3">Registrado</dt>
+                <dd class="col-sm-9" th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy HH:mm')}">-</dd>
+                <dt class="col-sm-3">Entrega estimada</dt>
+                <dd class="col-sm-9" th:text="${pedido.fechaEntrega != null ? #temporals.format(pedido.fechaEntrega, 'dd/MM/yyyy') : 'Por definir'}">-</dd>
+                <dt class="col-sm-3">Dirección de entrega</dt>
+                <dd class="col-sm-9" th:text="${pedido.direccionEntrega ?: '—'}">-</dd>
+                <th:block th:if="${cotizacionOrigen != null}">
+                    <dt class="col-sm-3">Especificaciones</dt>
+                    <dd class="col-sm-9" th:text="${cotizacionOrigen.especificaciones}">-</dd>
+                </th:block>
+            </dl>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div th:replace="~{fragments/layout :: disenos(${disenos}, ${pedido}, ${puedeSubirDiseno}, false)}"></div>
+                <div class="card p-3 mb-3">
+                    <h6 class="mb-3">Productos</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="text-muted small"><tr><th>Producto</th><th>Forma / tamaño</th><th>Cantidad</th></tr></thead>
+                            <tbody>
+                            <tr th:each="d : ${detalles}">
+                                <td>
+                                    <div th:text="${d.producto.nombre}">Producto</div>
+                                    <div class="text-muted small" th:text="${d.producto.material}">Material</div>
+                                </td>
+                                <td class="small" th:text="${(d.producto.forma ?: '—') + ' · ' + (d.producto.tamano ?: '—')}">-</td>
+                                <td th:text="${#numbers.formatInteger(d.cantidad, 1, 'POINT')}">0</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(detalles)}"><td colspan="3" class="text-muted text-center py-3">Sin productos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div th:replace="~{fragments/layout :: avanzar(${area}, ${pedido}, ${estadoActual}, ${puedeAvanzar})}"></div>
+                <div class="card p-3 mt-3">
+                    <h6 class="mb-3">Historial</h6>
+                    <ul th:replace="~{fragments/layout :: historial(${historial})}"></ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

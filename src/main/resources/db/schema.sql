@@ -1,138 +1,158 @@
 -- =====================================================================
 -- Sistema de Gestion de Repartos de Empaques - Universo Empaques
--- Script de creacion de base de datos (MySQL)
--- Corresponde 1:1 al Diccionario de Datos y al Diagrama de Tablas
--- entregados en el documento de Diseno Preliminar.
+-- Script de la base de datos (modelo v2 de Amelie - "SCRIPT vf2")
+--
+-- Es el script de Amelie con estos cambios (marcados en el script):
+--   1. CORREGIDO - Cotizacion: sobraba una coma despues del ultimo FOREIGN KEY.
+--   2. CORREGIDO - Diseno: la columna se declaraba "CodigoDetallePedidO" pero
+--      el FOREIGN KEY apuntaba a "CodigoDetallePedid". Se unifico como
+--      "CodigoDetallePedido" (el nombre del Diccionario de Datos).
+--   3. CAMBIADO - Cliente.Telefono y Usuario.TelefonoEmpresa pasan de INT a
+--      VARCHAR(20): un numero colombiano de 10 digitos (3001234567) no cabe
+--      en INT (maximo 2.147.483.647). Pendiente que Amelie lo actualice en
+--      el diccionario de datos.
+--
+-- IMPORTANTE (Linux/Docker): MySQL distingue mayusculas en los nombres
+-- de tabla. No cambien "Cliente" por "cliente", etc.
+--
+-- Como correrlo (con el contenedor mysql-bd encendido):
+--   docker exec -i mysql-bd mysql -uroot -puniverso123 < src/main/resources/db/schema.sql
+--
+-- OJO: la primera linea BORRA la base de datos completa (datos incluidos).
 -- =====================================================================
 
-CREATE DATABASE IF NOT EXISTS universo_empaques
+DROP DATABASE IF EXISTS universo_empaques;
+
+CREATE DATABASE universo_empaques
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE universo_empaques;
 
--- ---------------------------------------------------------------------
--- Tabla Area: departamento/cargo al que pertenece un trabajador
--- (Comercial, Diseno, Produccion, Bodega)
--- ---------------------------------------------------------------------
-CREATE TABLE area (
-  codigo    INT AUTO_INCREMENT PRIMARY KEY,
-  tipo      VARCHAR(255),
-  direccion VARCHAR(255)
+CREATE TABLE Cliente (
+    NIT VARCHAR(255) PRIMARY KEY NOT NULL,
+    Correo VARCHAR(255),
+    Contrasena VARCHAR(255),
+    Direccion VARCHAR(255),
+    NombreEmpresa VARCHAR(255),
+    Telefono VARCHAR(20),                             -- CAMBIADO: antes INT
+    FechaRegistro DATE,
+    EstadoCliente VARCHAR(255),
+    Celular VARCHAR(255),
+    RazonSocial VARCHAR(255)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Rol: nivel jerarquico de permisos (Administrador, Empleado)
--- ---------------------------------------------------------------------
-CREATE TABLE rol (
-  codigo INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(255)
+CREATE TABLE Usuario (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Correo VARCHAR(255),
+    Contrasena VARCHAR(255),
+    NombreEmpresa VARCHAR(255),
+    TelefonoPersonal VARCHAR(255),
+    TelefonoEmpresa VARCHAR(20),                      -- CAMBIADO: antes INT
+    NumDocumento VARCHAR(255),
+    FechaIngreso DATE,
+    CantHorasTrabajadas DECIMAL(10,2),
+    FecVencimientoContrato DATE,
+    Nomina DECIMAL(10,2)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Cliente: usuarios externos que solicitan cotizaciones/pedidos
--- ---------------------------------------------------------------------
-CREATE TABLE cliente (
-  codigo      INT AUTO_INCREMENT PRIMARY KEY,
-  correo      VARCHAR(255) UNIQUE,
-  contrasena  VARCHAR(255),
-  direccion   VARCHAR(255),
-  nombre      VARCHAR(255),
-  telefono    INTEGER
+CREATE TABLE Producto (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Nombre VARCHAR(255),
+    Material VARCHAR(255),
+    Precio DECIMAL(10,2),
+    Forma VARCHAR(255),
+    Tamano VARCHAR(255)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Usuario: trabajadores internos, categorizados por Area y Rol
--- ---------------------------------------------------------------------
-CREATE TABLE usuario (
-  codigo       INT AUTO_INCREMENT PRIMARY KEY,
-  correo       VARCHAR(255) UNIQUE,
-  contrasena   VARCHAR(255),
-  nombre       VARCHAR(255),
-  telefono     INTEGER,
-  codigo_area  INT,
-  codigo_rol   INT,
-  CONSTRAINT fk_usuario_area FOREIGN KEY (codigo_area) REFERENCES area(codigo),
-  CONSTRAINT fk_usuario_rol  FOREIGN KEY (codigo_rol)  REFERENCES rol(codigo)
+CREATE TABLE Area (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Nombre VARCHAR(255),
+    Direccion VARCHAR(255)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Pedido
--- ---------------------------------------------------------------------
-CREATE TABLE pedido (
-  codigo          INT AUTO_INCREMENT PRIMARY KEY,
-  fecha_registro  DATETIME,
-  fecha_entrega   DATETIME,
-  codigo_cliente  INT,
-  codigo_usuario  INT,
-  CONSTRAINT fk_pedido_cliente FOREIGN KEY (codigo_cliente) REFERENCES cliente(codigo),
-  CONSTRAINT fk_pedido_usuario FOREIGN KEY (codigo_usuario) REFERENCES usuario(codigo)
+CREATE TABLE Rol (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Nombre VARCHAR(255),
+    Permisos VARCHAR(255)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Diseno
--- ---------------------------------------------------------------------
-CREATE TABLE diseno (
-  codigo                    INT AUTO_INCREMENT PRIMARY KEY,
-  especificaciones_tecnicas VARCHAR(255),
-  estado                    VARCHAR(255),
-  codigo_pedido             INT,
-  codigo_usuario            INT,
-  CONSTRAINT fk_diseno_pedido  FOREIGN KEY (codigo_pedido)  REFERENCES pedido(codigo),
-  CONSTRAINT fk_diseno_usuario FOREIGN KEY (codigo_usuario) REFERENCES usuario(codigo)
+CREATE TABLE Pedido (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    FechaRegistroTecnicas DATETIME,
+    FechaEntrega DATETIME,
+    NITCliente VARCHAR(255),
+    CodigoUsuario INT,
+    FormaPago VARCHAR(255),
+    DireccionEntrega VARCHAR(255),
+    FOREIGN KEY (NITCliente) REFERENCES Cliente(NIT),
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Estado_pedido: historial de estados por los que pasa un pedido
--- ---------------------------------------------------------------------
-CREATE TABLE estado_pedido (
-  codigo          INT AUTO_INCREMENT PRIMARY KEY,
-  fecha_inicio    DATETIME,
-  fecha_fin       DATETIME,
-  estado          VARCHAR(255),
-  reporte         VARCHAR(255),
-  codigo_usuario  INT,
-  codigo_pedido   INT,
-  CONSTRAINT fk_estadopedido_usuario FOREIGN KEY (codigo_usuario) REFERENCES usuario(codigo),
-  CONSTRAINT fk_estadopedido_pedido  FOREIGN KEY (codigo_pedido)  REFERENCES pedido(codigo)
+CREATE TABLE DetallePedido (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Cantidad INT,
+    CodigoPedido INT,
+    CodigoProducto INT,
+    PrecioUnitario DECIMAL(10,2),
+    FOREIGN KEY (CodigoPedido) REFERENCES Pedido(Codigo),
+    FOREIGN KEY (CodigoProducto) REFERENCES Producto(Codigo)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Producto: catalogo de productos/empaques ofrecidos
--- ---------------------------------------------------------------------
-CREATE TABLE producto (
-  codigo   INT AUTO_INCREMENT PRIMARY KEY,
-  nombre   VARCHAR(255),
-  material VARCHAR(255),
-  precio   DECIMAL(12,2)
+CREATE TABLE EstadoPedido (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    FechaInicio DATETIME,
+    FechaFin DATETIME,
+    Estado VARCHAR(255),
+    Reporte VARCHAR(255),
+    CodigoUsuario INT,
+    CodigoPedido INT,
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
+    FOREIGN KEY (CodigoPedido) REFERENCES Pedido(Codigo)
 );
 
--- ---------------------------------------------------------------------
--- Tabla Detalle_pedido: productos y cantidades incluidos en un pedido
--- ---------------------------------------------------------------------
-CREATE TABLE detalle_pedido (
-  codigo          INT AUTO_INCREMENT PRIMARY KEY,
-  cantidad        INT,
-  codigo_pedido   INT,
-  codigo_producto INT,
-  CONSTRAINT fk_detalle_pedido   FOREIGN KEY (codigo_pedido)   REFERENCES pedido(codigo),
-  CONSTRAINT fk_detalle_producto FOREIGN KEY (codigo_producto) REFERENCES producto(codigo)
+CREATE TABLE Cotizacion (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Valor DOUBLE,
+    Estado VARCHAR(255),
+    EspecificacionesEmpaqueSolicitado VARCHAR(255),
+    CodigoUsuario INT,
+    CodigoPedido INT,
+    FechaSolicitud DATE,
+    NITCliente VARCHAR(255),
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
+    FOREIGN KEY (CodigoPedido) REFERENCES Pedido(Codigo),
+    FOREIGN KEY (NITCliente) REFERENCES Cliente(NIT)   -- CORREGIDO: sin coma final
 );
 
--- =====================================================================
--- Datos iniciales (necesarios para poder iniciar sesion desde el primer
--- arranque de la aplicacion)
--- =====================================================================
+CREATE TABLE UsuarioArea (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    CodigoUsuario INT,
+    CodigoArea INT,
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
+    FOREIGN KEY (CodigoArea) REFERENCES Area(Codigo)
+);
 
-INSERT INTO rol (nombre) VALUES ('Administrador'), ('Empleado');
+CREATE TABLE UsuarioRol (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    CodigoUsuario INT,
+    CodigoRol INT,
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
+    FOREIGN KEY (CodigoRol) REFERENCES Rol(Codigo)
+);
 
-INSERT INTO area (tipo, direccion) VALUES
-  ('Comercial',   'Planta Universo Empaques - Bucaramanga'),
-  ('Diseno',      'Planta Universo Empaques - Bucaramanga'),
-  ('Produccion',  'Planta Universo Empaques - Bucaramanga'),
-  ('Bodega',      'Planta Universo Empaques - Bucaramanga');
+CREATE TABLE Diseno (
+    Codigo INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Estado VARCHAR(255),
+    Color VARCHAR(255),
+    Logo BLOB,
+    ArchivoDiseno BLOB,
+    FechaAprobado DATE,
+    Observaciones VARCHAR(255),
+    CodigoUsuario INT,
+    Version INT,
+    CodigoDetallePedido INT,                           -- CORREGIDO: antes "CodigoDetallePedidO"
+    FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
+    FOREIGN KEY (CodigoDetallePedido) REFERENCES DetallePedido(Codigo)  -- CORREGIDO: antes "CodigoDetallePedid"
+);
 
--- Usuario administrador inicial.
--- Correo: admin@universoempaques.com / Contrasena: admin123
--- (la contrasena real se guarda cifrada con BCrypt; este valor de
---  ejemplo se genera automaticamente la primera vez que se ejecuta
---  la aplicacion si la tabla usuario esta vacia - ver DataSeeder.java)
+SHOW TABLES;

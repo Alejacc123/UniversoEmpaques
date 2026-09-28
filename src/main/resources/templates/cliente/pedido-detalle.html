@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mi pedido')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-pedidos')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <div th:if="${param.creado}" class="alert alert-success py-2 small">
+            ¡Pedido enviado! El área comercial lo revisará y te avisaremos por correo cada vez que avance.
+        </div>
+        <a class="small text-ue text-decoration-none" th:href="@{/cliente/pedidos}">&larr; Volver a mis pedidos</a>
+        <div class="d-flex align-items-center gap-2 mt-2 mb-3 flex-wrap">
+            <h4 class="mb-0" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
+            <span th:if="${estadoActual != null}" class="status-pill" th:classappend="${estadoActual.estado.claseCss}"
+                  th:text="${estadoActual.estado.etiqueta}">Estado</span>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <div th:replace="~{fragments/layout :: progreso(${estadoActual})}"></div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <th:block th:if="${hayDisenos}">
+                    <div th:replace="~{fragments/layout :: disenos(${disenos}, ${pedido}, false, false)}"></div>
+                </th:block>
+                <div class="card p-3 mb-3">
+                    <dl class="row small mb-0">
+                        <dt class="col-sm-4">Registrado</dt>
+                        <dd class="col-sm-8" th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy')}">-</dd>
+                        <dt class="col-sm-4">Entrega estimada</dt>
+                        <dd class="col-sm-8" th:text="${pedido.fechaEntrega != null ? #temporals.format(pedido.fechaEntrega, 'dd/MM/yyyy') : 'Por definir'}">-</dd>
+                        <dt class="col-sm-4">Dirección de entrega</dt>
+                        <dd class="col-sm-8" th:text="${pedido.direccionEntrega ?: '—'}">-</dd>
+                        <dt class="col-sm-4">Forma de pago</dt>
+                        <dd class="col-sm-8" th:text="${pedido.formaPago ?: 'Por definir'}">-</dd>
+                        <th:block th:if="${cotizacionOrigen != null}">
+                            <dt class="col-sm-4">Cotización</dt>
+                            <dd class="col-sm-8">
+                                <a class="text-ue" th:href="@{/cliente/cotizaciones/{id}(id=${cotizacionOrigen.codigo})}"
+                                   th:text="'COT-' + ${cotizacionOrigen.codigo}">COT</a>
+                            </dd>
+                        </th:block>
+                    </dl>
+                </div>
+                <div class="card p-3">
+                    <h6 class="mb-3">Productos</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="text-muted small"><tr><th>Producto</th><th>Cantidad</th><th>Precio unit.</th><th>Subtotal</th></tr></thead>
+                            <tbody>
+                            <tr th:each="d : ${detalles}">
+                                <td th:text="${d.producto.nombre}">Producto</td>
+                                <td th:text="${#numbers.formatInteger(d.cantidad, 1, 'POINT')}">0</td>
+                                <td th:text="${'$' + #numbers.formatDecimal(d.precioUnitario, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                                <td th:text="${'$' + #numbers.formatDecimal(d.subtotal, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(detalles)}"><td colspan="4" class="text-muted text-center py-3">El área comercial está preparando tu pedido.</td></tr>
+                            </tbody>
+                            <tfoot th:unless="${#lists.isEmpty(detalles)}">
+                            <tr><th colspan="3" class="text-end">Total</th>
+                                <th th:text="${'$' + #numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}">$0</th></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card p-3">
+                    <h6 class="mb-3">Historial</h6>
+                    <ul th:replace="~{fragments/layout :: historial(${historial})}"></ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 package com.universoempaques.config;
 
+import com.universoempaques.model.Area;
 import com.universoempaques.model.Cliente;
-import com.universoempaques.model.Rol;
 import com.universoempaques.model.Usuario;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +23,12 @@ import java.util.List;
  *   - ROLE_<AREA>             -> si es Usuario con Rol = Empleado
  *                                (ej: ROLE_COMERCIAL, ROLE_DISENO,
  *                                ROLE_PRODUCCION, ROLE_BODEGA)
+ *
+ * Modelo v2: el rol y el area salen de las tablas puente, usando
+ * el rol/area PRINCIPAL (el primero asignado). Ver Usuario.java.
+ *
+ * Patron Adapter: adapta nuestras entidades Cliente/Usuario a la
+ * interfaz UserDetails que espera Spring Security.
  */
 public class AppUserPrincipal implements UserDetails {
 
@@ -30,6 +36,7 @@ public class AppUserPrincipal implements UserDetails {
     private final String contrasenaCifrada;
     private final String nombre;
     private final List<GrantedAuthority> authorities;
+    private final boolean activo;
 
     private final Cliente cliente;   // != null si quien inicio sesion es un cliente
     private final Usuario usuario;   // != null si quien inicio sesion es un trabajador
@@ -40,6 +47,7 @@ public class AppUserPrincipal implements UserDetails {
                 cliente.getContrasena(),
                 cliente.getNombre(),
                 List.of(new SimpleGrantedAuthority("ROLE_CLIENTE")),
+                cliente.estaActivo(),   // un cliente INACTIVO no puede entrar
                 cliente,
                 null
         );
@@ -50,25 +58,28 @@ public class AppUserPrincipal implements UserDetails {
         if (usuario.esAdministrador()) {
             autoridad = "ROLE_ADMIN";
         } else {
-            String area = usuario.getArea() != null ? usuario.getArea().getTipo() : "EMPLEADO";
-            autoridad = "ROLE_" + normalizar(area);
+            Area area = usuario.getAreaPrincipal();
+            autoridad = "ROLE_" + normalizar(area != null ? area.getNombre() : "EMPLEADO");
         }
         return new AppUserPrincipal(
                 usuario.getCorreo(),
                 usuario.getContrasena(),
                 usuario.getNombre(),
                 List.of(new SimpleGrantedAuthority(autoridad)),
+                true,
                 null,
                 usuario
         );
     }
 
     private AppUserPrincipal(String correo, String contrasenaCifrada, String nombre,
-                              List<GrantedAuthority> authorities, Cliente cliente, Usuario usuario) {
+                              List<GrantedAuthority> authorities, boolean activo,
+                              Cliente cliente, Usuario usuario) {
         this.correo = correo;
         this.contrasenaCifrada = contrasenaCifrada;
         this.nombre = nombre;
         this.authorities = authorities;
+        this.activo = activo;
         this.cliente = cliente;
         this.usuario = usuario;
     }
@@ -96,6 +107,19 @@ public class AppUserPrincipal implements UserDetails {
         return nombre;
     }
 
+    /** Texto del cargo para la barra superior: "Administrador", "Comercial", "Diseño"... */
+    public String getCargo() {
+        if (cliente != null) return "Cliente";
+        if (usuario.esAdministrador()) return "Administrador";
+        Area area = usuario.getAreaPrincipal();
+        if (area == null) return "Empleado";
+        return switch (normalizar(area.getNombre())) {
+            case "DISENO" -> "Diseño";
+            case "PRODUCCION" -> "Producción";
+            default -> area.getNombre();
+        };
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
@@ -121,5 +145,5 @@ public class AppUserPrincipal implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return activo; }
 }

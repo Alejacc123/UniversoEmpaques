@@ -7,14 +7,16 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/estilo.css}">
+  <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
+  <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
 </head>
 <body>
 
-<div class="d-flex align-items-center justify-content-center py-5" style="min-height:100vh;">
-  <div class="card shadow-sm p-4" style="width:440px;">
+<div class="d-flex align-items-center justify-content-center py-5 px-3" style="min-height:100vh;">
+  <div class="card shadow-sm p-4" style="width:100%; max-width:480px;">
 
     <div class="text-center mb-3">
-      <span class="brand-word fs-3">UNIVERSO<span class="text-ue">.</span></span>
+      <a th:href="@{/}"><img th:src="@{/img/logo-negro.png}" alt="Universo Empaques" class="logo-card"></a>
     </div>
     <h6 class="text-center text-muted mb-3">Crea tu cuenta de cliente</h6>
 
@@ -23,34 +25,61 @@
     <form th:action="@{/registro}" th:object="${registroClienteForm}" method="post">
 
       <div class="mb-2">
-        <label class="form-label small">Nombre completo</label>
-        <input type="text" class="form-control" th:field="*{nombre}"
+        <label class="form-label small">NIT o documento</label>
+        <input type="text" class="form-control" th:field="*{nit}" placeholder="900123456-7" maxlength="12"
+               th:classappend="${#fields.hasErrors('nit')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('nit')}" th:errors="*{nit}"></div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small">Nombre o nombre de la empresa</label>
+        <input type="text" class="form-control" th:field="*{nombre}" maxlength="150"
                th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
       </div>
 
       <div class="mb-2">
+        <label class="form-label small">Razón social <span class="text-muted">(opcional)</span></label>
+        <input type="text" class="form-control" th:field="*{razonSocial}" maxlength="150"
+               th:classappend="${#fields.hasErrors('razonSocial')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('razonSocial')}" th:errors="*{razonSocial}"></div>
+      </div>
+
+      <div class="mb-2">
         <label class="form-label small">Correo electrónico</label>
-        <input type="email" class="form-control" th:field="*{correo}"
+        <input type="email" class="form-control" th:field="*{correo}" maxlength="100" autocomplete="email"
                th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
       </div>
 
-      <div class="mb-2">
-        <label class="form-label small">Teléfono</label>
-        <input type="text" class="form-control" th:field="*{telefono}">
+      <div class="row g-2 mb-2">
+        <div class="col-sm-6">
+          <label class="form-label small">Celular</label>
+          <input type="tel" class="form-control" th:field="*{celular}" maxlength="16" placeholder="3001234567" autocomplete="tel"
+                 th:classappend="${#fields.hasErrors('celular')} ? 'is-invalid'">
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('celular')}" th:errors="*{celular}"></div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label small">Otro teléfono <span class="text-muted">(opcional)</span></label>
+          <input type="tel" class="form-control" th:field="*{telefono}" maxlength="16" placeholder="6076851234 o 3xx..."
+                 th:classappend="${#fields.hasErrors('telefono')} ? 'is-invalid'">
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
+        </div>
       </div>
 
       <div class="mb-2">
         <label class="form-label small">Dirección</label>
-        <input type="text" class="form-control" th:field="*{direccion}">
+        <input type="text" class="form-control" th:field="*{direccion}" maxlength="200"
+               th:classappend="${#fields.hasErrors('direccion')} ? 'is-invalid'">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></div>
       </div>
 
       <div class="mb-2">
         <label class="form-label small">Contraseña</label>
-        <input type="password" class="form-control" th:field="*{contrasena}"
+        <input type="password" class="form-control" th:field="*{contrasena}" minlength="8" maxlength="64" autocomplete="new-password"
                th:classappend="${#fields.hasErrors('contrasena')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('contrasena')}" th:errors="*{contrasena}"></div>
+        <div class="form-text" th:unless="${#fields.hasErrors('contrasena')}">Mínimo 8 caracteres, con letras y números.</div>
       </div>
 
       <div class="mb-3">
