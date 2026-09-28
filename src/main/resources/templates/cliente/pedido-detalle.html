@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de pedido — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <div class="d-flex align-items-center gap-4">
+        <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/panel}">Inicio</a>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+        <a class="text-white small text-decoration-none" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="mb-0">
+        <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+    </form>
+</nav>
+
+<div class="container py-4">
+    <a class="small text-ue text-decoration-none" th:href="@{/cliente/pedidos}">&larr; Volver a mis pedidos</a>
+    <h4 class="mt-2 mb-1" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
+    <p class="text-muted small mb-4">
+        Solicitado: <span th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy HH:mm')}">-</span> ·
+        Estado:
+        <span th:if="${estadoActual != null}" class="status-pill"
+              th:classappend="'status-' + ${#strings.toLowerCase(estadoActual.estado)}"
+              th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(estadoActual.estado, '_', ' ')))}">Estado</span>
+    </p>
+
+    <div th:if="${mensajeExito}" class="alert alert-success py-2 small" th:text="${mensajeExito}"></div>
+
+    <div class="row g-3">
+        <div class="col-md-7">
+            <!-- Pedido a partir de una cotizacion -->
+            <div class="card p-3 mb-3" th:if="${pedido.cotizacion != null}">
+                <h6 class="mb-3">Basado en tu cotización
+                    <a class="text-ue text-decoration-none" th:href="@{/cliente/cotizaciones/{id}(id=${pedido.cotizacion.codigo})}"
+                       th:text="'COT-' + ${pedido.cotizacion.codigo}">COT</a>
+                </h6>
+                <dl class="row small mb-0">
+                    <dt class="col-4 text-muted fw-normal">Material</dt>
+                    <dd class="col-8" th:text="${pedido.cotizacion.material}">-</dd>
+                    <dt class="col-4 text-muted fw-normal">Medidas</dt>
+                    <dd class="col-8" th:text="${pedido.cotizacion.medidas}">-</dd>
+                    <dt class="col-4 text-muted fw-normal">Cantidad</dt>
+                    <dd class="col-8" th:text="${pedido.cotizacion.cantidad} + ' unidades'">-</dd>
+                    <dt class="col-4 text-muted fw-normal">Condiciones</dt>
+                    <dd class="col-8" style="white-space:pre-line;" th:text="${pedido.cotizacion.condiciones}">-</dd>
+                </dl>
+            </div>
+
+            <!-- Pedido directo -->
+            <div class="card p-3 mb-3" th:if="${pedido.cotizacion == null}">
+                <h6 class="mb-3">Productos</h6>
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="text-muted small"><tr><th>Producto</th><th>Material</th><th>Cantidad</th><th>Precio unit.</th></tr></thead>
+                    <tbody>
+                    <tr th:each="d : ${detalles}">
+                        <td th:text="${d.producto.nombre}">Producto</td>
+                        <td th:text="${d.producto.material}">Material</td>
+                        <td th:text="${d.cantidad}">0</td>
+                        <td th:text="${d.producto.precio != null ? '$' + #numbers.formatDecimal(d.producto.precio, 0, 'COMMA', 0, 'POINT') : '—'}">$0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
+                <span class="text-muted small">Valor estimado del pedido</span>
+                <span class="fw-bold fs-5" th:text="${total != null ? '$' + #numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT') : '—'}">$0</span>
+            </div>
+
+            <div class="card p-3" th:if="${diseno != null}">
+                <h6 class="mb-2">Diseño personalizado</h6>
+                <p class="small mb-2" style="white-space:pre-line;" th:text="${diseno.especificacionesTecnicas}">Especificaciones</p>
+                <span class="small text-muted">Estado del diseño:
+          <strong th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(diseno.estado, '_', ' ')))}">Pendiente</strong>
+        </span>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-3 h-100">
+                <h6 class="mb-3">Historial del pedido</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li th:each="e : ${historial}" class="mb-3">
+            <span class="status-pill"
+                  th:classappend="'status-' + ${#strings.toLowerCase(e.estado)}"
+                  th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(e.estado, '_', ' ')))}">Estado</span>
+                        <div class="text-muted mt-1" th:text="${#temporals.format(e.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                        <div th:if="${e.reporte != null}" th:text="${e.reporte}">Reporte</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

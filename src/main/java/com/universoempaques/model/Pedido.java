@@ -37,4 +37,13 @@ public class Pedido {
     @ManyToOne
     @JoinColumn(name = "codigo_usuario")
     private Usuario usuario;
+
+    /**
+     * Cotizacion aprobada que origino el pedido (RF-10).
+     * Es null cuando el pedido se solicito de forma directa.
+     * unique = true: una cotizacion solo puede generar un pedido.
+     */
+    @OneToOne
+    @JoinColumn(name = "codigo_cotizacion", unique = true)
+    private Cotizacion cotizacion;
 }

@@ -25,6 +25,7 @@
         <div class="nav flex-column gap-1">
             <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
             <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link" th:href="@{/comercial/cotizaciones}">Cotizaciones</a>
             <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
         </div>
     </div>
@@ -37,6 +38,10 @@
             Registrado: <span th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy')}">-</span> ·
             Estado actual:
             <span class="status-pill status-cotizado" th:text="${estadoActual != null ? estadoActual.estado : 'Sin estado'}">Estado</span>
+            <span th:if="${pedido.cotizacion != null}"> ·
+                Origen: <strong th:text="'Cotización COT-' + ${pedido.cotizacion.codigo}">COT</strong>
+                (<span th:text="${pedido.cotizacion.material + ', ' + pedido.cotizacion.medidas + ', ' + pedido.cotizacion.cantidad + ' und.'}"></span>)
+            </span>
         </p>
 
         <div class="row g-3">

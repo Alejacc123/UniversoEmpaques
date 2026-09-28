@@ -28,3 +28,9 @@ body{ font-family:'Poppins', sans-serif; background:var(--ue-bg); color:var(--ue
 .status-entregado{ background:#e1f5ee; color:#0f6e56; }
 .card{ border-radius:12px; border:1px solid #e7e7e7; }
 .hero-landing{ background:linear-gradient(180deg,var(--ue-black) 0%, #1c1c1c 100%); color:#fff; }
+
+.status-solicitado{ background:#faeeda; color:#854f0b; }
+.status-en_diseno{ background:#eeecfe; color:#534ab7; }
+.status-en_produccion{ background:#faeeda; color:#854f0b; }
+
+

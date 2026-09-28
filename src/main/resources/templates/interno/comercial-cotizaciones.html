@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotizaciones — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-ue">Cargo: Comercial</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <div class="sidebar p-3" style="width:230px;">
+        <div class="nav flex-column gap-1">
+            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
+            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link active" th:href="@{/comercial/cotizaciones}">Cotizaciones</a>
+            <a class="nav-link" th:href="@{/comercial/pedidos}">Pedidos</a>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Cotizaciones</h4>
+            <span class="status-pill status-solicitada" th:text="${pendientes} + ' pendientes por registrar'">0 pendientes</span>
+        </div>
+
+        <ul class="nav nav-pills mb-3 small">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${estadoFiltro == null} ? 'active bg-ue'"
+                   th:href="@{/comercial/cotizaciones}">Todas</a>
+            </li>
+            <li class="nav-item" th:each="e : ${estados}">
+                <a class="nav-link" th:classappend="${estadoFiltro == e} ? 'active bg-ue'"
+                   th:href="@{/comercial/cotizaciones(estado=${e})}"
+                   th:text="${#strings.capitalize(#strings.toLowerCase(e))}">Estado</a>
+            </li>
+        </ul>
+
+        <div class="card p-3">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>ID</th><th>Cliente</th><th>Material</th><th>Cantidad</th><th>Solicitada</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${cotizaciones}">
+                    <td th:text="'COT-' + ${c.codigo}">COT-1</td>
+                    <td>
+                        <div th:text="${c.cliente.nombre}">Cliente</div>
+                        <div class="text-muted small" th:text="'NIT ' + ${c.cliente.nit}">NIT</div>
+                    </td>
+                    <td th:text="${c.material}">Material</td>
+                    <td th:text="${c.cantidad}">0</td>
+                    <td th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</td>
+                    <td>
+                        <span class="status-pill"
+                              th:classappend="'status-' + ${#strings.toLowerCase(c.estado)}"
+                              th:text="${#strings.capitalize(#strings.toLowerCase(c.estado))}">Estado</span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm"
+                           th:classappend="${c.estado.name() == 'SOLICITADA'} ? 'btn-ue' : 'btn-outline-ue'"
+                           th:href="@{/comercial/cotizaciones/{id}(id=${c.codigo})}"
+                           th:text="${c.estado.name() == 'SOLICITADA'} ? 'Registrar' : 'Ver detalle'">Ver detalle</a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(cotizaciones)}">
+                    <td colspan="7" class="text-muted text-center py-3">No hay cotizaciones para mostrar.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitar pedido — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <div class="d-flex align-items-center gap-4">
+        <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/panel}">Inicio</a>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+        <a class="text-white small text-decoration-none" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="mb-0">
+        <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+    </form>
+</nav>
+
+<div class="container py-4">
+    <a class="small text-ue text-decoration-none" th:href="@{/cliente/pedidos}">&larr; Volver a mis pedidos</a>
+    <h4 class="mt-2 mb-1">Solicitar pedido</h4>
+    <p class="text-muted small mb-4">
+        Indica cuántas unidades quieres de cada producto del catálogo. Si necesitas un empaque a la medida,
+        primero <a class="text-ue" th:href="@{/cliente/cotizaciones/nueva}">solicita una cotización</a>
+        y, cuando la apruebes, podrás convertirla en pedido.
+    </p>
+
+    <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
+
+    <form th:action="@{/cliente/pedidos}" th:object="${solicitarPedidoForm}" method="post">
+        <div class="card p-3 mb-3">
+            <h6 class="mb-3">Catálogo de productos</h6>
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>Producto</th><th>Material</th><th>Precio unit.</th><th style="width:150px;">Cantidad</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${productos}">
+                    <td th:text="${p.nombre}">Producto</td>
+                    <td th:text="${p.material}">Material</td>
+                    <td th:text="${p.precio != null ? '$' + #numbers.formatDecimal(p.precio, 0, 'COMMA', 0, 'POINT') : '—'}">$0</td>
+                    <td>
+                        <input type="number" min="0" max="1000000" step="1" class="form-control form-control-sm" placeholder="0"
+                               th:name="|cantidades[${p.codigo}]|"
+                               th:value="${solicitarPedidoForm.cantidades[p.codigo]}">
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(productos)}">
+                    <td colspan="4" class="text-muted text-center py-3">No hay productos disponibles en este momento.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <h6 class="mb-1">Diseño personalizado (opcional)</h6>
+            <p class="text-muted small mb-2">Si tu pedido lleva logo, impresión o colores especiales, descríbelo aquí y nuestro equipo de diseño te enviará una propuesta.</p>
+            <textarea rows="3" maxlength="255" class="form-control" th:field="*{especificacionesDiseno}"
+                      placeholder="Ej: logo a una tinta en la tapa, color azul corporativo"
+                      th:classappend="${#fields.hasErrors('especificacionesDiseno')} ? 'is-invalid'"></textarea>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('especificacionesDiseno')}" th:errors="*{especificacionesDiseno}"></div>
+        </div>
+
+        <button type="submit" class="btn btn-ue px-4">Enviar pedido</button>
+    </form>
+</div>
+
+</body>
+</html>

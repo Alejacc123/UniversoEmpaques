@@ -19,7 +19,7 @@
 -- Current Database: `universo_empaques`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `universo_empaques` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `universo_empaques` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
 USE `universo_empaques`;
 
@@ -32,10 +32,10 @@ DROP TABLE IF EXISTS `area`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `area` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `direccion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tipo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `tipo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -57,14 +57,14 @@ DROP TABLE IF EXISTS `cliente`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cliente` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `contrasena` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `correo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `direccion` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contrasena` varchar(255) DEFAULT NULL,
+  `correo` varchar(255) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
   `telefono` int DEFAULT NULL,
   PRIMARY KEY (`codigo`),
   UNIQUE KEY `UK_k6i2j3upwar1uora4mgiol6b` (`correo`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +73,6 @@ CREATE TABLE `cliente` (
 
 LOCK TABLES `cliente` WRITE;
 /*!40000 ALTER TABLE `cliente` DISABLE KEYS */;
-INSERT INTO `cliente` VALUES (1,'$2a$10$ELwzvBSY.8q1L1CO0rkoO.ed.ujDLeni0LxnEk5u0hgMiewNemPhS','ewe@ewe','123','e',123),(2,'$2a$10$rtoerxXSQRGmVq1nvRN/qOVY/rGAIIVuoGBM2DKgxqbwlL3hMUgxa','acermo@a','1','acermo',1111111);
 /*!40000 ALTER TABLE `cliente` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -94,7 +93,7 @@ CREATE TABLE `detalle_pedido` (
   KEY `FKcwijdleua1uiudej4bb2xajfn` (`codigo_producto`),
   CONSTRAINT `FKcwijdleua1uiudej4bb2xajfn` FOREIGN KEY (`codigo_producto`) REFERENCES `producto` (`codigo`),
   CONSTRAINT `FKno00qjdldx7qifq47n2tj264l` FOREIGN KEY (`codigo_pedido`) REFERENCES `pedido` (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -115,8 +114,8 @@ DROP TABLE IF EXISTS `diseno`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `diseno` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `especificaciones_tecnicas` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `estado` enum('PENDIENTE','APROBADO','AJUSTE_SOLICITADO') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `especificaciones_tecnicas` varchar(255) DEFAULT NULL,
+  `estado` enum('PENDIENTE','APROBADO','AJUSTE_SOLICITADO') DEFAULT NULL,
   `codigo_pedido` int DEFAULT NULL,
   `codigo_usuario` int DEFAULT NULL,
   PRIMARY KEY (`codigo`),
@@ -124,7 +123,7 @@ CREATE TABLE `diseno` (
   KEY `FKdaq3jpo8eq86mt3mneu1lf0qg` (`codigo_usuario`),
   CONSTRAINT `FK2wup09qitwy7gvsyt69xhalcr` FOREIGN KEY (`codigo_pedido`) REFERENCES `pedido` (`codigo`),
   CONSTRAINT `FKdaq3jpo8eq86mt3mneu1lf0qg` FOREIGN KEY (`codigo_usuario`) REFERENCES `usuario` (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -145,10 +144,10 @@ DROP TABLE IF EXISTS `estado_pedido`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `estado_pedido` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `estado` enum('SOLICITADO','EN_DISENO','EN_PRODUCCION','TERMINADO','DESPACHADO','ENTREGADO') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estado` enum('SOLICITADO','EN_DISENO','EN_PRODUCCION','TERMINADO','DESPACHADO','ENTREGADO') DEFAULT NULL,
   `fecha_fin` datetime(6) DEFAULT NULL,
   `fecha_inicio` datetime(6) DEFAULT NULL,
-  `reporte` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reporte` varchar(255) DEFAULT NULL,
   `codigo_pedido` int DEFAULT NULL,
   `codigo_usuario` int DEFAULT NULL,
   PRIMARY KEY (`codigo`),
@@ -156,7 +155,7 @@ CREATE TABLE `estado_pedido` (
   KEY `FK92we8n6qitu7nx6asxtub40mt` (`codigo_usuario`),
   CONSTRAINT `FK1o5wdas2g0ed38f8q977b3t7g` FOREIGN KEY (`codigo_pedido`) REFERENCES `pedido` (`codigo`),
   CONSTRAINT `FK92we8n6qitu7nx6asxtub40mt` FOREIGN KEY (`codigo_usuario`) REFERENCES `usuario` (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,7 +185,7 @@ CREATE TABLE `pedido` (
   KEY `FKmqlda2hhcolmusws35fq3ki6q` (`codigo_usuario`),
   CONSTRAINT `FKlljc9v6pce0jpy3ng2wm91mbd` FOREIGN KEY (`codigo_cliente`) REFERENCES `cliente` (`codigo`),
   CONSTRAINT `FKmqlda2hhcolmusws35fq3ki6q` FOREIGN KEY (`codigo_usuario`) REFERENCES `usuario` (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -207,11 +206,11 @@ DROP TABLE IF EXISTS `producto`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `producto` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `material` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `material` varchar(255) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
   `precio` decimal(38,2) DEFAULT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,9 +232,9 @@ DROP TABLE IF EXISTS `rol`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `rol` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -257,9 +256,9 @@ DROP TABLE IF EXISTS `usuario`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usuario` (
   `codigo` int NOT NULL AUTO_INCREMENT,
-  `contrasena` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `correo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contrasena` varchar(255) DEFAULT NULL,
+  `correo` varchar(255) DEFAULT NULL,
+  `nombre` varchar(255) DEFAULT NULL,
   `telefono` int DEFAULT NULL,
   `codigo_area` int DEFAULT NULL,
   `codigo_rol` int DEFAULT NULL,
@@ -269,7 +268,7 @@ CREATE TABLE `usuario` (
   KEY `FK1kgw3g1oelf4ok4oehhkwst7v` (`codigo_rol`),
   CONSTRAINT `FK1kgw3g1oelf4ok4oehhkwst7v` FOREIGN KEY (`codigo_rol`) REFERENCES `rol` (`codigo`),
   CONSTRAINT `FKgs3fdvpr1kn8110mewwp384rm` FOREIGN KEY (`codigo_area`) REFERENCES `area` (`codigo`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -278,7 +277,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (1,'$2a$10$Aq4U95DiGS5acpwVw1LfKODtUpet2atMv4/.EQUwDq/5rwNfJHqgm','admin@universoempaques.com','Administrador',NULL,NULL,1),(2,'$2a$10$ezFLNHRtMtwfBL9sUfLUzuSrFaXdywTlI9MbhCr4Js0.krb1ehTwi','wewe@eedds','ewe',123,1,2),(3,'$2a$10$B87HsbVQ8/L.rdwtKdZMfuvRe/a4Z7QKgWCI3E4Wjn933JUkfk0/O','pulga@h','pulgaa',3434,4,2);
+INSERT INTO `usuario` VALUES (1,'$2a$10$/h.zQH70ANLtTQrqyaB5i.fDgwjkPCgpMajs0jr3itxlqTHdkC1R6','admin@universoempaques.com','Administrador',NULL,NULL,1);
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -295,4 +294,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-21 20:05:55
+-- Dump completed on 2026-09-22 20:33:44

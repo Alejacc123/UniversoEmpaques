@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de cotización — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-ue">Cargo: Comercial</span>
+        <form th:action="@{/logout}" method="post" class="mb-0">
+            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <div class="sidebar p-3" style="width:230px;">
+        <div class="nav flex-column gap-1">
+            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
+            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
+            <a class="nav-link active" th:href="@{/comercial/cotizaciones}">Cotizaciones</a>
+            <a class="nav-link" th:href="@{/comercial/pedidos}">Pedidos</a>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 p-4">
+        <a class="small text-ue text-decoration-none" th:href="@{/comercial/cotizaciones}">&larr; Volver a cotizaciones</a>
+        <h4 class="mt-2 mb-1" th:text="'Cotización COT-' + ${cotizacion.codigo}">Cotización</h4>
+        <p class="text-muted small mb-4">
+            Solicitada: <span th:text="${#temporals.format(cotizacion.fechaSolicitud, 'dd/MM/yyyy HH:mm')}">-</span> ·
+            Estado:
+            <span class="status-pill"
+                  th:classappend="'status-' + ${#strings.toLowerCase(cotizacion.estado)}"
+                  th:text="${#strings.capitalize(#strings.toLowerCase(cotizacion.estado))}">Estado</span>
+        </p>
+
+        <div th:if="${mensajeExito}" class="alert alert-success py-2 small" th:text="${mensajeExito}"></div>
+        <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
+
+        <div class="row g-3">
+            <!-- Lo que pidio el cliente (RF-06) -->
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Solicitud del cliente</h6>
+                    <dl class="row small mb-0">
+                        <dt class="col-5 text-muted fw-normal">Cliente</dt>
+                        <dd class="col-7" th:text="${cotizacion.cliente.nombre}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">NIT</dt>
+                        <dd class="col-7" th:text="${cotizacion.cliente.nit}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Correo</dt>
+                        <dd class="col-7" th:text="${cotizacion.cliente.correo}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Material</dt>
+                        <dd class="col-7" th:text="${cotizacion.material}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Medidas</dt>
+                        <dd class="col-7" th:text="${cotizacion.medidas}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Cantidad</dt>
+                        <dd class="col-7" th:text="${cotizacion.cantidad}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Descripción</dt>
+                        <dd class="col-7" th:text="${cotizacion.descripcion != null ? cotizacion.descripcion : '—'}">-</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- RF-07: formulario solo mientras la cotizacion esta SOLICITADA -->
+            <div class="col-md-6" th:if="${cotizacion.estado.name() == 'SOLICITADA'}">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Registrar valor y condiciones</h6>
+                    <form th:action="@{/comercial/cotizaciones/{id}/registrar(id=${cotizacion.codigo})}"
+                          th:object="${registrarCotizacionForm}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label small">Valor total (COP)</label>
+                            <input type="number" min="1" step="0.01" class="form-control" th:field="*{valorEstimado}"
+                                   th:classappend="${#fields.hasErrors('valorEstimado')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('valorEstimado')}" th:errors="*{valorEstimado}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Condiciones</label>
+                            <textarea rows="5" maxlength="1000" class="form-control" th:field="*{condiciones}"
+                                      placeholder="Tiempo de entrega, forma de pago, vigencia de la oferta..."
+                                      th:classappend="${#fields.hasErrors('condiciones')} ? 'is-invalid'"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('condiciones')}" th:errors="*{condiciones}"></div>
+                        </div>
+                        <button type="submit" class="btn btn-ue w-100">Registrar cotización</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cotizacion ya registrada: solo lectura -->
+            <div class="col-md-6" th:unless="${cotizacion.estado.name() == 'SOLICITADA'}">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Respuesta del área comercial</h6>
+                    <dl class="row small mb-0">
+                        <dt class="col-5 text-muted fw-normal">Valor total</dt>
+                        <dd class="col-7 fw-bold"
+                            th:text="${'$' + #numbers.formatDecimal(cotizacion.valorEstimado, 0, 'COMMA', 0, 'POINT')}">$0</dd>
+                        <dt class="col-5 text-muted fw-normal">Condiciones</dt>
+                        <dd class="col-7" style="white-space:pre-line;" th:text="${cotizacion.condiciones}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Registrada por</dt>
+                        <dd class="col-7" th:text="${cotizacion.usuario != null ? cotizacion.usuario.nombre : '—'}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Fecha registro</dt>
+                        <dd class="col-7" th:text="${#temporals.format(cotizacion.fechaRegistro, 'dd/MM/yyyy HH:mm')}">-</dd>
+                        <dt class="col-5 text-muted fw-normal">Respuesta cliente</dt>
+                        <dd class="col-7"
+                            th:text="${cotizacion.fechaRespuesta != null ? #temporals.format(cotizacion.fechaRespuesta, 'dd/MM/yyyy HH:mm') : 'Pendiente'}">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

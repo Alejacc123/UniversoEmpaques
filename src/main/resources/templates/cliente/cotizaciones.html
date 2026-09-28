@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis cotizaciones — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <div class="d-flex align-items-center gap-4">
+        <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/panel}">Inicio</a>
+        <a class="text-white small text-decoration-none" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="mb-0">
+        <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+    </form>
+</nav>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Mis cotizaciones</h4>
+        <a class="btn btn-ue btn-sm" th:href="@{/cliente/cotizaciones/nueva}">+ Solicitar cotización</a>
+    </div>
+
+    <div class="card p-3">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="text-muted small">
+            <tr><th>ID</th><th>Material</th><th>Medidas</th><th>Cantidad</th><th>Solicitada</th><th>Valor</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${cotizaciones}">
+                <td th:text="'COT-' + ${c.codigo}">COT-1</td>
+                <td th:text="${c.material}">Material</td>
+                <td th:text="${c.medidas}">Medidas</td>
+                <td th:text="${c.cantidad}">0</td>
+                <td th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</td>
+                <td th:text="${c.valorEstimado != null ? '$' + #numbers.formatDecimal(c.valorEstimado, 0, 'COMMA', 0, 'POINT') : 'En revisión'}">-</td>
+                <td>
+          <span class="status-pill"
+                th:classappend="'status-' + ${#strings.toLowerCase(c.estado)}"
+                th:text="${#strings.capitalize(#strings.toLowerCase(c.estado))}">Estado</span>
+                </td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-ue" th:href="@{/cliente/cotizaciones/{id}(id=${c.codigo})}">Ver detalle</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(cotizaciones)}">
+                <td colspan="8" class="text-muted text-center py-3">Aún no has solicitado cotizaciones.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

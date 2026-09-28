@@ -11,28 +11,51 @@
 <body>
 
 <nav class="navbar navbar-dark navbar-ue px-4">
-  <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-  <div class="d-flex align-items-center gap-3">
-    <span class="text-white small">Hola, <span th:text="${nombre}">Cliente</span></span>
-    <form th:action="@{/logout}" method="post" class="mb-0">
-      <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-    </form>
+  <div class="d-flex align-items-center gap-4">
+    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+    <a class="text-white small text-decoration-none" th:href="@{/cliente/panel}">Inicio</a>
+    <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+    <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/pedidos}">Mis pedidos</a>
   </div>
+  <form th:action="@{/logout}" method="post" class="mb-0">
+    <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+  </form>
 </nav>
 
 <div class="container py-4">
-  <h4 class="mb-4">Mi panel</h4>
-
-  <div class="alert alert-light border">
-    Este panel se ira completando en las siguientes iteraciones con:
-    <strong>solicitar cotización (RF-06)</strong>, <strong>ver y aprobar cotizaciones (RF-08, RF-09)</strong>,
-    <strong>solicitar pedido (RF-10)</strong> y <strong>consultar el avance del pedido (RF-15)</strong>.
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">Hola, <span th:text="${nombre}">Cliente</span></h4>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-ue" th:href="@{/cliente/cotizaciones/nueva}">Solicitar cotización</a>
+      <a class="btn btn-ue" th:href="@{/cliente/pedidos/nuevo}">Solicitar pedido</a>
+    </div>
   </div>
 
   <div class="row g-3">
-    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Cotizaciones pendientes</div><div class="fs-3 fw-bold">0</div></div></div>
-    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Pedidos activos</div><div class="fs-3 fw-bold">0</div></div></div>
-    <div class="col-md-4"><div class="card p-3"><div class="text-muted small">Pedidos entregados</div><div class="fs-3 fw-bold">0</div></div></div>
+    <div class="col-md-3">
+      <a class="card p-3 text-decoration-none text-reset h-100" th:href="@{/cliente/cotizaciones}">
+        <div class="text-muted small">Cotizaciones en revisión</div>
+        <div class="fs-3 fw-bold" th:text="${cotizacionesEnRevision}">0</div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a class="card p-3 text-decoration-none text-reset h-100" th:href="@{/cliente/cotizaciones}">
+        <div class="text-muted small">Cotizaciones con valor</div>
+        <div class="fs-3 fw-bold" th:text="${cotizacionesConValor}">0</div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a class="card p-3 text-decoration-none text-reset h-100" th:href="@{/cliente/pedidos}">
+        <div class="text-muted small">Pedidos activos</div>
+        <div class="fs-3 fw-bold" th:text="${pedidosActivos}">0</div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a class="card p-3 text-decoration-none text-reset h-100" th:href="@{/cliente/pedidos}">
+        <div class="text-muted small">Pedidos entregados</div>
+        <div class="fs-3 fw-bold" th:text="${pedidosEntregados}">0</div>
+      </a>
+    </div>
   </div>
 </div>
 

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitar cotización — Universo Empaques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-ue px-4">
+    <div class="d-flex align-items-center gap-4">
+        <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/panel}">Inicio</a>
+        <a class="text-white small text-decoration-none" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
+        <a class="text-white-50 small text-decoration-none" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+    </div>
+    <form th:action="@{/logout}" method="post" class="mb-0">
+        <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+    </form>
+</nav>
+
+<div class="container py-4">
+    <a class="small text-ue text-decoration-none" th:href="@{/cliente/cotizaciones}">&larr; Volver a mis cotizaciones</a>
+    <h4 class="mt-2 mb-1">Solicitar cotización</h4>
+    <p class="text-muted small mb-4">Cuéntanos qué empaque necesitas y el área comercial te enviará el valor y las condiciones.</p>
+
+    <div class="card p-4" style="max-width:620px;">
+        <form th:action="@{/cliente/cotizaciones}" th:object="${solicitarCotizacionForm}" method="post">
+
+            <div class="mb-3">
+                <label class="form-label small">Material</label>
+                <input type="text" class="form-control" th:field="*{material}" maxlength="255"
+                       placeholder="Ej: cartón corrugado, cartón plegadizo, papel kraft"
+                       th:classappend="${#fields.hasErrors('material')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('material')}" th:errors="*{material}"></div>
+            </div>
+
+            <label class="form-label small">Medidas (cm)</label>
+            <div class="row g-2 mb-1">
+                <div class="col-4">
+                    <input type="number" min="0.1" step="0.1" class="form-control" placeholder="Largo" th:field="*{largo}"
+                           th:classappend="${#fields.hasErrors('largo')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('largo')}" th:errors="*{largo}"></div>
+                </div>
+                <div class="col-4">
+                    <input type="number" min="0.1" step="0.1" class="form-control" placeholder="Ancho" th:field="*{ancho}"
+                           th:classappend="${#fields.hasErrors('ancho')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('ancho')}" th:errors="*{ancho}"></div>
+                </div>
+                <div class="col-4">
+                    <input type="number" min="0.1" step="0.1" class="form-control" placeholder="Alto (opcional)" th:field="*{alto}"
+                           th:classappend="${#fields.hasErrors('alto')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('alto')}" th:errors="*{alto}"></div>
+                </div>
+            </div>
+            <div class="form-text mb-3">Deja el alto vacío si es un empaque plano, como bolsas o láminas.</div>
+
+            <div class="mb-3" style="max-width:220px;">
+                <label class="form-label small">Cantidad (unidades)</label>
+                <input type="number" min="1" step="1" class="form-control" th:field="*{cantidad}"
+                       th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small">Descripción adicional (opcional)</label>
+                <textarea rows="4" maxlength="1000" class="form-control" th:field="*{descripcion}"
+                          placeholder="Impresión, colores, logo, uso del empaque, fecha en que lo necesitas..."
+                          th:classappend="${#fields.hasErrors('descripcion')} ? 'is-invalid'"></textarea>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-ue w-100">Enviar solicitud</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

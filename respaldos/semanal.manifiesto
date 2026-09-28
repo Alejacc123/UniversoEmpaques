@@ -1,11 +1,11 @@
 #Huellas de las tablas al momento del respaldo semanal
-#Mon Sep 21 20:05:55 COT 2026
+#Tue Sep 22 20:33:44 GMT-05:00 2026
 area=580162832
+cliente=0
+detalle_pedido=0
+diseno=0
 estado_pedido=0
+pedido=0
 producto=4102391568
 rol=2904251243
-cliente=151803570
-detalle_pedido=0
-pedido=0
-diseno=0
-usuario=1056896984
+usuario=1870454722

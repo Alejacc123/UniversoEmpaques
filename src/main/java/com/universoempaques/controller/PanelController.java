@@ -1,20 +1,31 @@
 package com.universoempaques.controller;
 
 import com.universoempaques.config.AppUserPrincipal;
+import com.universoempaques.model.Cliente;
+import com.universoempaques.model.EstadoCotizacionTipo;
+import com.universoempaques.service.CotizacionService;
+import com.universoempaques.service.SolicitudPedidoService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import org.springframework.security.core.Authentication;
-
 /**
  * Paneles de entrada de cada rol/cargo (RF-01: redireccion post-login).
- * Por ahora cada panel es una pantalla de bienvenida; en las siguientes
- * iteraciones se agregan los modulos propios de cada area
- * (cotizaciones, pedidos, diseno, produccion, despacho, reportes...).
+ * En las siguientes iteraciones se agregan los modulos propios de cada
+ * area (diseno, produccion, despacho, reportes...).
  */
 @Controller
 public class PanelController {
+
+    private final CotizacionService cotizacionService;
+    private final SolicitudPedidoService solicitudPedidoService;
+
+    public PanelController(CotizacionService cotizacionService,
+                           SolicitudPedidoService solicitudPedidoService) {
+        this.cotizacionService = cotizacionService;
+        this.solicitudPedidoService = solicitudPedidoService;
+    }
 
     private AppUserPrincipal principal(Authentication auth) {
         return (AppUserPrincipal) auth.getPrincipal();
@@ -22,7 +33,15 @@ public class PanelController {
 
     @GetMapping("/cliente/panel")
     public String panelCliente(Authentication auth, Model model) {
-        model.addAttribute("nombre", principal(auth).getNombreParaSaludo());
+        AppUserPrincipal principal = principal(auth);
+        Cliente cliente = principal.getCliente();
+        model.addAttribute("nombre", principal.getNombreParaSaludo());
+        model.addAttribute("cotizacionesEnRevision",
+                cotizacionService.contarDeClientePorEstado(cliente, EstadoCotizacionTipo.SOLICITADA));
+        model.addAttribute("cotizacionesConValor",
+                cotizacionService.contarDeClientePorEstado(cliente, EstadoCotizacionTipo.REGISTRADA));
+        model.addAttribute("pedidosActivos", solicitudPedidoService.contarActivos(cliente));
+        model.addAttribute("pedidosEntregados", solicitudPedidoService.contarEntregados(cliente));
         return "cliente/panel";
     }
 
