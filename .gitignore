@@ -1,0 +1,25 @@
+# Compilados de Maven
+target/
+
+# Configuracion local de IntelliJ / VS Code / Eclipse
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Basura del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuracion PERSONAL de cada computador (contrasenas, rutas).
+# Se crea copiando application-local.properties.example
+application-local.properties
+
+# Copias de seguridad de la BD (RF-19): contienen datos reales y
+# contrasenas cifradas de los usuarios. NUNCA deben subirse a Git.
+respaldos/
+
+# Logs
+*.log

@@ -1,0 +1,17 @@
+# Finales de linea iguales en Mac y Windows: Git guarda todo con LF y
+# cada quien lo ve normal en su sistema. Evita que un archivo aparezca
+# "modificado entero" solo por abrirlo en otro sistema operativo.
+* text=auto eol=lf
+
+# Scripts de Windows con CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binarios: nunca tocarlos
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.jar binary
