@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Copias de seguridad')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('admin-respaldos')}"></aside>
+
+    <main class="contenido">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Copias de seguridad</h4>
+            <form th:action="@{/admin/respaldos/ahora}" method="post"
+                  onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='Copiando...';">
+                <button class="btn btn-ue btn-sm" title="Copia total de la base; reemplaza mensual.sql">Hacer copia total ahora</button>
+            </form>
+        </div>
+
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <div th:if="${errorCopia}" class="alert alert-danger py-2 small">
+            <strong>No se pudo hacer la copia.</strong> <span th:text="${errorCopia}"></span>
+            <div class="mt-1" th:if="${#strings.containsIgnoreCase(errorCopia, 'No se encontro el programa')}">
+                Este computador no tiene <code>mysqldump</code> o la ruta está mal. Configuren
+                <code>backup.ruta-mysqldump</code> y <code>backup.ruta-mysql</code> en su
+                <code>application-local.properties</code> (ver README).
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Copia automática</h6>
+                    <form th:action="@{/admin/respaldos/configuracion}" th:object="${configuracionRespaldoForm}" method="post">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="activo" th:field="*{activo}">
+                            <label class="form-check-label" for="activo">Hacer copias automáticas todos los días</label>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-sm-5">
+                                <label class="form-label small">Hora</label>
+                                <input type="time" class="form-control form-control-sm" th:field="*{hora}"
+                                       th:classappend="${#fields.hasErrors('hora')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('hora')}" th:errors="*{hora}"></div>
+                            </div>
+                            <div class="col-sm-7">
+                                <label class="form-label small">Segunda copia en <span class="text-muted">(opcional)</span></label>
+                                <input type="text" class="form-control form-control-sm" th:field="*{directorioCopia}" maxlength="250"
+                                       placeholder="Ej: D:/Respaldos o una carpeta de OneDrive"
+                                       th:classappend="${#fields.hasErrors('directorioCopia')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('directorioCopia')}" th:errors="*{directorioCopia}"></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-ue btn-sm">Guardar configuración</button>
+                    </form>
+                    <dl class="row small mb-0 mt-3 pt-3 border-top">
+                        <dt class="col-5">Estado actual</dt>
+                        <dd class="col-7">
+                            <span class="status-pill" th:classappend="${backup.activo} ? 'status-terminado' : 'status-rechazado'"
+                                  th:text="${backup.activo} ? 'Activada' : 'Apagada'">-</span>
+                            <span th:if="${backup.activo}" class="text-muted" th:text="${backup.horarioLegible}">-</span>
+                        </dd>
+                        <dt class="col-5">Carpeta <span class="text-muted fw-normal">(de este equipo)</span></dt>
+                        <dd class="col-7 text-break mb-0"><code th:text="${backup.directorioAbsoluto}">-</code></dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Última ejecución</h6>
+                    <p class="small mb-1" th:if="${backup.ultimaEjecucion != null}">
+                        <span class="status-pill" th:classappend="${backup.ultimaExitosa} ? 'status-terminado' : 'status-rechazado'"
+                              th:text="${backup.ultimaExitosa} ? 'Exitosa' : 'Falló'">-</span>
+                        <span class="text-muted ms-1" th:text="${#temporals.format(backup.ultimaEjecucion, 'dd/MM/yyyy HH:mm')}">-</span>
+                    </p>
+                    <p class="small text-muted mb-0" th:if="${backup.ultimaEjecucion != null or #lists.isEmpty(archivos)}"
+                       th:text="${backup.ultimoMensaje}">-</p>
+                    <!-- Si la app se reinicio, se muestra la copia mas reciente que hay en la carpeta -->
+                    <p class="small text-muted mb-0" th:if="${backup.ultimaEjecucion == null and !#lists.isEmpty(archivos)}">
+                        Desde que arrancó la aplicación no se ha hecho ninguna copia. La más reciente en la carpeta es
+                        <code th:text="${archivos[0].nombre()}">-</code> del
+                        <strong th:text="${#temporals.format(archivos[0].modificado(), 'dd/MM/yyyy HH:mm')}">-</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3 table-responsive mb-3">
+            <h6 class="mb-3">Archivos de respaldo</h6>
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>Archivo</th><th>Tipo</th><th>Fecha</th><th>Tamaño</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${archivos}">
+                    <td><code th:text="${a.nombre()}">mensual.sql</code></td>
+                    <td th:text="${a.tipo()}">-</td>
+                    <td th:text="${#temporals.format(a.modificado(), 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${a.tamanoLegible}">-</td>
+                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/admin/respaldos/descargar/{n}(n=${a.nombre()})}">Descargar</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(archivos)}">
+                    <td colspan="5" class="text-muted text-center py-3">Todavía no hay copias en la carpeta.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card p-3 small text-muted">
+            <strong class="text-dark mb-1">¿Cómo funciona?</strong>
+            <ul class="mb-0 ps-3">
+                <li><strong>Total</strong> (<code>mensual.sql</code>): toda la base; es la copia que se le entrega al ente externo.
+                    No se guarda un histórico: la automática la renueva cada mes y el botón
+                    <strong>"Hacer copia total ahora"</strong> la reemplaza en el momento.</li>
+                <li><strong>Completa semanal</strong> (<code>semanal.sql</code>): toda la base, la automática la renueva cada lunes.</li>
+                <li><strong>Parcial</strong> (<code>parcial_&lt;día&gt;.sql</code>): los demás días, solo las tablas que cambiaron desde la semanal.
+                    Para restaurar un día: primero <code>semanal.sql</code> y luego el parcial de ese día.</li>
+                <li>La configuración de esta pantalla se guarda solo en este equipo (<code>configuracion.properties</code> dentro de la carpeta de respaldos).</li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cotizaciones')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-cotizaciones')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Cotizaciones</h4>
+            <form th:action="@{/comercial/cotizaciones}" method="get" class="d-flex gap-2">
+                <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Todas</option>
+                    <option th:each="e : ${estados}" th:value="${e.name()}" th:text="${e.etiqueta}"
+                            th:selected="${e == estadoFiltro}"></option>
+                </select>
+            </form>
+        </div>
+
+        <input type="search" class="form-control form-control-sm buscador" data-filtro-tabla="tablaCotizaciones" placeholder="Buscar por número, cliente o empaque...">
+
+        <div class="card p-3 table-responsive">
+            <table id="tablaCotizaciones" class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>N.º</th><th>Cliente</th><th>Solicitada</th><th>Empaque</th><th>Valor</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${cotizaciones}">
+                    <td th:text="'COT-' + ${c.codigo}">COT-1</td>
+                    <td th:text="${c.cliente != null ? c.cliente.nombre : '—'}">Cliente</td>
+                    <td th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</td>
+                    <td class="small" th:text="${c.especificaciones}">-</td>
+                    <td th:text="${c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : 'Por cotizar'}">-</td>
+                    <td><span class="status-pill" th:classappend="${c.estado.claseCss}" th:text="${c.estado.etiqueta}">Estado</span></td>
+                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/comercial/cotizaciones/{id}(id=${c.codigo})}">Ver</a></td>
+                </tr>
+                <tr data-sin-datos th:if="${#lists.isEmpty(cotizaciones)}">
+                    <td colspan="7" class="text-muted text-center py-3">No hay cotizaciones con este filtro.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/filtro-tabla.js}"></script>
+</body>
+</html>

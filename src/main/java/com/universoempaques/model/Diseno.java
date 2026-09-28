@@ -4,12 +4,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.LocalDate;
 
 /**
- * Diseño elaborado para un pedido por el area de Diseño (RF-12, RF-13).
+ * Diseno de un producto dentro de un pedido (tabla "Diseno").
+ * En el modelo v2 cuelga de DetallePedido (cada producto del pedido
+ * puede tener su propio diseno y varias versiones). RF-12, RF-13.
  */
 @Entity
-@Table(name = "diseno")
+@Table(name = "Diseno")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,22 +23,55 @@ public class Diseno {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo")
+    @Column(name = "Codigo")
     private Integer codigo;
 
-    @Column(name = "especificaciones_tecnicas")
-    private String especificacionesTecnicas;
-
+    /** Texto en la BD (ver comentario en EstadoPedido.estado). */
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado")
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "Estado")
     private EstadoDisenoTipo estado;
 
-    @ManyToOne
-    @JoinColumn(name = "codigo_pedido")
-    private Pedido pedido;
+    /** Color en formato RGB, ej: "rgb(75,147,182)" (nota del modelo ER). */
+    @Column(name = "Color")
+    private String color;
 
-    /** Usuario del area de Diseño que elabora/revisa el diseño. */
+    /**
+     * Archivos binarios. columnDefinition = "BLOB" hace que "validate"
+     * acepte la columna BLOB del script (sin esto Hibernate espera otro
+     * tipo). OJO: BLOB en MySQL guarda maximo 64 KB por archivo
+     * (pendiente con Amelie: MEDIUMBLOB permite 16 MB).
+     */
+    @Lob
+    @Column(name = "Logo", columnDefinition = "BLOB")
+    private byte[] logo;
+
+    @Lob
+    @Column(name = "ArchivoDiseno", columnDefinition = "BLOB")
+    private byte[] archivoDiseno;
+
+    @Column(name = "FechaAprobado")
+    private LocalDate fechaAprobado;
+
+    @Column(name = "Observaciones")
+    private String observaciones;
+
+    /** Usuario de Diseno que elabora/revisa. */
     @ManyToOne
-    @JoinColumn(name = "codigo_usuario")
+    @JoinColumn(name = "CodigoUsuario")
     private Usuario usuario;
+
+    @Column(name = "Version")
+    private Integer version;
+
+    @ManyToOne
+    @JoinColumn(name = "CodigoDetallePedido")
+    private DetallePedido detallePedido;
+
+    /** ¿El archivo es una imagen (PNG/JPG)? Si no, es PDF. Sirve para mostrar la miniatura. */
+    @Transient
+    public boolean isArchivoImagen() {
+        byte[] b = archivoDiseno;
+        return b != null && b.length > 3 && ((b[0] & 0xFF) == 0x89 || (b[0] & 0xFF) == 0xFF);
+    }
 }

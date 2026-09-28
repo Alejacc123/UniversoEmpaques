@@ -1,103 +1,131 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Detalle de pedido — Universo Empaques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Pedido')}"></head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-    <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-ue">Cargo: Comercial</span>
-        <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-        </form>
-    </div>
-</nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="d-flex">
-    <div class="sidebar p-3" style="width:230px;">
-        <div class="nav flex-column gap-1">
-            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
-            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
-            <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
-        </div>
-    </div>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-pedidos')}"></aside>
 
-    <div class="flex-grow-1 p-4">
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <a class="small text-ue text-decoration-none" th:href="@{/comercial/pedidos}">&larr; Volver a pedidos</a>
-        <h4 class="mt-2 mb-1" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
-        <p class="text-muted small mb-4">
-            Cliente: <strong th:text="${pedido.cliente != null ? pedido.cliente.nombre : '—'}">Cliente</strong> ·
-            Registrado: <span th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy')}">-</span> ·
-            Estado actual:
-            <span class="status-pill status-cotizado" th:text="${estadoActual != null ? estadoActual.estado : 'Sin estado'}">Estado</span>
-        </p>
+        <div class="d-flex align-items-center gap-2 mt-2 mb-3 flex-wrap">
+            <h4 class="mb-0" th:text="'Pedido PED-' + ${pedido.codigo}">Pedido</h4>
+            <span th:if="${estadoActual != null}" class="status-pill" th:classappend="${estadoActual.estado.claseCss}"
+                  th:text="${estadoActual.estado.etiqueta}">Estado</span>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <div th:replace="~{fragments/layout :: progreso(${estadoActual})}"></div>
+        </div>
+
+        <div class="card p-3 mb-3">
+            <dl class="row small mb-0">
+                <dt class="col-sm-3">Cliente</dt>
+                <dd class="col-sm-9" th:text="${pedido.cliente != null ? pedido.cliente.nombre + ' (NIT ' + pedido.cliente.nit + ')' : '—'}">-</dd>
+                <dt class="col-sm-3">Registrado</dt>
+                <dd class="col-sm-9" th:text="${#temporals.format(pedido.fechaRegistro, 'dd/MM/yyyy HH:mm')} + (${pedido.usuario != null} ? ' · a cargo de ' + ${pedido.usuario.nombre} : ' · solicitado por el cliente desde la plataforma')">-</dd>
+                <dt class="col-sm-3">Entrega estimada</dt>
+                <dd class="col-sm-9" th:text="${pedido.fechaEntrega != null ? #temporals.format(pedido.fechaEntrega, 'dd/MM/yyyy') : 'Por definir'}">-</dd>
+                <dt class="col-sm-3">Forma de pago</dt>
+                <dd class="col-sm-9" th:text="${pedido.formaPago ?: 'Por definir'}">-</dd>
+                <dt class="col-sm-3">Dirección de entrega</dt>
+                <dd class="col-sm-9" th:text="${pedido.direccionEntrega ?: '—'}">-</dd>
+                <th:block th:if="${cotizacionOrigen != null}">
+                    <dt class="col-sm-3">Origen</dt>
+                    <dd class="col-sm-9">
+                        <a class="text-ue" th:href="@{/comercial/cotizaciones/{id}(id=${cotizacionOrigen.codigo})}"
+                           th:text="'Cotización COT-' + ${cotizacionOrigen.codigo} + ' (aprobada por $' + ${#numbers.formatDecimal(cotizacionOrigen.valor, 0, 'POINT', 0, 'COMMA')} + ')'">COT</a>
+                    </dd>
+                </th:block>
+            </dl>
+        </div>
 
         <div class="row g-3">
-            <div class="col-md-7">
+            <div class="col-lg-8">
+                <th:block th:if="${!#lists.isEmpty(disenos) and (puedeRevisarDiseno or !editable)}">
+                    <div th:replace="~{fragments/layout :: disenos(${disenos}, ${pedido}, false, ${puedeRevisarDiseno})}"></div>
+                </th:block>
                 <div class="card p-3 h-100">
                     <h6 class="mb-3">Productos del pedido</h6>
-                    <table class="table table-sm align-middle mb-3">
-                        <thead class="text-muted small"><tr><th>Producto</th><th>Material</th><th>Cantidad</th><th>Precio unit.</th></tr></thead>
-                        <tbody>
-                        <tr th:each="d : ${detalles}">
-                            <td th:text="${d.producto.nombre}">Producto</td>
-                            <td th:text="${d.producto.material}">Material</td>
-                            <td th:text="${d.cantidad}">0</td>
-                            <td th:text="${'$' + #numbers.formatDecimal(d.producto.precio, 0, 'COMMA', 0, 'POINT')}">$0</td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(detalles)}">
-                            <td colspan="4" class="text-muted text-center py-3">Aún no se han agregado productos.</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-3">
+                            <thead class="text-muted small">
+                            <tr><th>Producto</th><th>Cantidad</th><th>Precio unit.</th><th>Subtotal</th><th th:if="${editable}"></th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="d : ${detalles}">
+                                <td>
+                                    <div th:text="${d.producto.nombre}">Producto</div>
+                                    <div class="text-muted small" th:text="${d.producto.material}">Material</div>
+                                </td>
+                                <td th:text="${#numbers.formatInteger(d.cantidad, 1, 'POINT')}">0</td>
+                                <!-- Precio guardado en el pedido, NO el precio actual del producto -->
+                                <td th:text="${'$' + #numbers.formatDecimal(d.precioUnitario, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                                <td th:text="${'$' + #numbers.formatDecimal(d.subtotal, 0, 'POINT', 0, 'COMMA')}">$0</td>
+                                <td th:if="${editable}" class="text-end">
+                                    <form th:action="@{/comercial/pedidos/{id}/detalles/{det}/quitar(id=${pedido.codigo}, det=${d.codigo})}"
+                                          method="post" onsubmit="return confirm('¿Quitar este producto del pedido?');">
+                                        <button class="btn btn-sm btn-link text-danger p-0">Quitar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(detalles)}">
+                                <td colspan="5" class="text-muted text-center py-3">Aún no se han agregado productos.</td>
+                            </tr>
+                            </tbody>
+                            <tfoot th:unless="${#lists.isEmpty(detalles)}">
+                            <tr>
+                                <th colspan="3" class="text-end">Total</th>
+                                <th th:text="${'$' + #numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}">$0</th>
+                                <th th:if="${editable}"></th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
 
-                    <hr>
-                    <h6 class="mb-2">Agregar producto</h6>
-                    <form th:action="@{/comercial/pedidos/{id}/detalles(id=${pedido.codigo})}" th:object="${agregarDetalleForm}" method="post" class="row g-2">
-                        <input type="hidden" th:field="*{codigoPedido}">
-                        <div class="col-6">
-                            <select class="form-select form-select-sm" th:field="*{codigoProducto}"
-                                    th:classappend="${#fields.hasErrors('codigoProducto')} ? 'is-invalid'">
-                                <option value="">-- Producto --</option>
-                                <option th:each="p : ${productos}" th:value="${p.codigo}" th:text="${p.nombre}"></option>
-                            </select>
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoProducto')}" th:errors="*{codigoProducto}"></div>
-                        </div>
-                        <div class="col-3">
-                            <input type="number" min="1" class="form-control form-control-sm" placeholder="Cantidad" th:field="*{cantidad}"
-                                   th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
-                        </div>
-                        <div class="col-3">
-                            <button type="submit" class="btn btn-ue btn-sm w-100">Agregar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="col-md-5">
-                <div class="card p-3 h-100">
-                    <h6 class="mb-3">Historial de estado</h6>
-                    <ul class="list-unstyled small mb-0">
-                        <li th:each="e : ${estadoActual != null ? {estadoActual} : {}}" class="mb-2">
-                            <span class="status-pill status-produccion" th:text="${e.estado}">Estado</span>
-                            <div class="text-muted" th:text="${#temporals.format(e.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha</div>
-                        </li>
-                    </ul>
-                    <p class="text-muted small mt-2 mb-0">
-                        El cambio de estado (producción, despacho, etc.) se maneja desde el módulo de cada área — lo agregamos en el siguiente paso.
+                    <th:block th:if="${editable}">
+                        <hr>
+                        <h6 class="mb-2">Agregar producto</h6>
+                        <form th:action="@{/comercial/pedidos/{id}/detalles(id=${pedido.codigo})}" th:object="${agregarDetalleForm}"
+                              method="post" class="row g-2">
+                            <input type="hidden" th:field="*{codigoPedido}">
+                            <div class="col-12 col-sm-6">
+                                <select class="form-select form-select-sm" th:field="*{codigoProducto}"
+                                        th:classappend="${#fields.hasErrors('codigoProducto')} ? 'is-invalid'">
+                                    <option value="">-- Producto --</option>
+                                    <option th:each="p : ${productos}" th:value="${p.codigo}"
+                                            th:text="${p.nombre + ' — $' + #numbers.formatDecimal(p.precio, 0, 'POINT', 0, 'COMMA')}"></option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('codigoProducto')}" th:errors="*{codigoProducto}"></div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <input type="number" min="1" max="1000000" class="form-control form-control-sm" placeholder="Cantidad"
+                                       th:field="*{cantidad}" th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <button type="submit" class="btn btn-ue btn-sm w-100">Agregar</button>
+                            </div>
+                        </form>
+                    </th:block>
+                    <p th:unless="${editable}" class="text-muted small mb-0">
+                        El pedido ya avanzó de etapa: sus productos no se pueden modificar.
                     </p>
                 </div>
             </div>
+
+            <div class="col-lg-4">
+                <div th:replace="~{fragments/layout :: avanzar('comercial', ${pedido}, ${estadoActual}, ${puedeAvanzar})}"></div>
+                <div class="card p-3 mt-3">
+                    <h6 class="mb-3">Historial</h6>
+                    <ul th:replace="~{fragments/layout :: historial(${historial})}"></ul>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 </div>
 
 </body>

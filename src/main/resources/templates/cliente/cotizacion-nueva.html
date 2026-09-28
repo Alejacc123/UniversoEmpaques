@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Solicitar cotización')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-cotizaciones')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+        <h4 class="mb-1">Solicitar cotización</h4>
+        <p class="text-muted small mb-4">Cuéntanos qué empaque necesitas. El área comercial te responderá con el valor.</p>
+
+        <div class="card p-4" style="max-width:560px;">
+            <form th:action="@{/cliente/cotizaciones}" th:object="${solicitarCotizacionForm}" method="post">
+
+                <div class="mb-2">
+                    <label class="form-label small">Tipo de empaque</label>
+                    <select class="form-select" th:field="*{tipoEmpaque}"
+                            th:classappend="${#fields.hasErrors('tipoEmpaque')} ? 'is-invalid'">
+                        <option value="">-- Selecciona --</option>
+                        <option th:each="p : ${productos}" th:value="${p.nombre}" th:text="${p.nombre}"></option>
+                        <option value="Otro">Otro (lo describo en observaciones)</option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoEmpaque')}" th:errors="*{tipoEmpaque}"></div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small">Cantidad (unidades)</label>
+                        <input type="number" min="1" max="1000000" class="form-control" th:field="*{cantidad}"
+                               th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Medidas</label>
+                        <input type="text" class="form-control" th:field="*{medidas}" maxlength="30" placeholder="30x20x15 cm"
+                               th:classappend="${#fields.hasErrors('medidas')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('medidas')}" th:errors="*{medidas}"></div>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Material <span class="text-muted">(opcional)</span></label>
+                    <input type="text" class="form-control" th:field="*{material}" maxlength="30" placeholder="Cartón Kraft"
+                           th:classappend="${#fields.hasErrors('material')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('material')}" th:errors="*{material}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Observaciones <span class="text-muted">(opcional)</span></label>
+                    <textarea class="form-control" rows="2" th:field="*{observaciones}" maxlength="90"
+                              placeholder="Ej: con logo a una tinta, ventana transparente..."
+                              th:classappend="${#fields.hasErrors('observaciones')} ? 'is-invalid'"></textarea>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('observaciones')}" th:errors="*{observaciones}"></div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-ue">Enviar solicitud</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/cliente/cotizaciones}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

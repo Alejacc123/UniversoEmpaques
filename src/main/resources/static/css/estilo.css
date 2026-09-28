@@ -1,30 +1,133 @@
+/* =====================================================================
+   Estilos de Universo Empaques (sobre Bootstrap 5).
+   Colores de marca: azul #4B93B6, negro y blanco.
+   ===================================================================== */
 :root{
   --ue-blue:#4B93B6;
   --ue-blue-dark:#3A7593;
+  --ue-blue-soft:#eef5f8;
   --ue-black:#111111;
   --ue-white:#ffffff;
   --ue-bg:#F4F6F7;
+  --ue-border:#e5e5e5;
+  --sidebar-ancho:240px;
+  --navbar-alto:60px;
 }
 body{ font-family:'Poppins', sans-serif; background:var(--ue-bg); color:var(--ue-black); }
+
+/* ---------- Marca ---------- */
 .brand-word{ font-style:italic; font-weight:800; letter-spacing:-0.5px; }
 .brand-sub{ font-weight:600; letter-spacing:3px; font-size:0.7rem; }
 .rule{ height:2px; background:var(--ue-blue); flex:1; }
-.btn-ue{ background:var(--ue-blue); border-color:var(--ue-blue); color:#fff; }
-.btn-ue:hover{ background:var(--ue-blue-dark); border-color:var(--ue-blue-dark); color:#fff; }
-.btn-outline-ue{ border-color:var(--ue-blue); color:var(--ue-blue); }
-.btn-outline-ue:hover{ background:var(--ue-blue); color:#fff; }
 .text-ue{ color:var(--ue-blue) !important; }
 .bg-ue{ background:var(--ue-blue) !important; }
-.navbar-ue{ background:var(--ue-black); }
-.sidebar{ background:#fff; min-height:calc(100vh - 62px); border-right:1px solid #e5e5e5; }
-.sidebar .nav-link{ color:#333; border-radius:8px; padding:.6rem .9rem; font-size:.92rem; }
+
+/* Logo oficial (static/img). logo-blanco va sobre la barra negra; logo-negro sobre fondo blanco. */
+.logo-nav{ height:34px; width:auto; display:block; }
+.logo-card{ width:100%; max-width:260px; height:auto; display:block; }
+
+/* ---------- Botones ---------- */
+.btn-ue{ background:var(--ue-blue); border-color:var(--ue-blue); color:#fff; }
+.btn-ue:hover, .btn-ue:focus{ background:var(--ue-blue-dark); border-color:var(--ue-blue-dark); color:#fff; }
+.btn-outline-ue{ border-color:var(--ue-blue); color:var(--ue-blue); }
+.btn-outline-ue:hover{ background:var(--ue-blue); color:#fff; }
+.form-control:focus, .form-select:focus{ border-color:var(--ue-blue); box-shadow:0 0 0 .2rem rgba(75,147,182,.2); }
+
+/* ---------- Barra superior ---------- */
+.navbar-ue{ background:var(--ue-black); min-height:var(--navbar-alto); }
+
+/* ---------- Estructura: menu lateral + contenido ----------
+   El menu tiene un ancho FIJO (flex:0 0 ...) y el contenido tiene
+   min-width:0. Sin esto, una tabla ancha "empuja" y el menu cambia de
+   tamano al pasar de una pagina a otra. */
+.layout{ display:flex; min-height:calc(100vh - var(--navbar-alto)); }
+.sidebar{
+  flex:0 0 var(--sidebar-ancho); width:var(--sidebar-ancho);
+  background:#fff; border-right:1px solid var(--ue-border); padding:1rem .75rem;
+}
+.contenido{ flex:1 1 0; min-width:0; padding:1.5rem; }
+.sidebar .nav-link{ color:#333; border-radius:8px; padding:.55rem .85rem; font-size:.92rem; }
+.sidebar .nav-link:hover{ background:var(--ue-blue-soft); }
 .sidebar .nav-link.active{ background:var(--ue-blue); color:#fff; }
-.sidebar .nav-link:hover{ background:#eef5f8; }
-.status-pill{ font-size:.72rem; font-weight:600; padding:.25rem .6rem; border-radius:20px; }
+.sidebar-titulo{
+  font-size:.7rem; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+  color:#999; padding:.75rem .85rem .25rem;
+}
+.sidebar-titulo:first-child{ padding-top:0; }
+
+/* ---------- Tarjetas y tablas ---------- */
+.card{ border-radius:12px; border:1px solid #e7e7e7; }
+.tarjeta-dato{ transition:border-color .15s, box-shadow .15s; }
+a.tarjeta-dato:hover{ border-color:var(--ue-blue); box-shadow:0 2px 8px rgba(75,147,182,.15); }
+.table > :not(caption) > * > *{ padding-top:.55rem; padding-bottom:.55rem; }
+.buscador{ max-width:320px; margin-bottom:.75rem; }
+.icono-construccion{
+  width:56px; height:56px; border-radius:50%;
+  background:var(--ue-blue-soft) radial-gradient(circle, var(--ue-blue) 0 30%, transparent 31%);
+}
+
+/* ---------- Estados (pills de color) ---------- */
+.status-pill{ display:inline-block; font-size:.72rem; font-weight:600; padding:.25rem .6rem; border-radius:20px; white-space:nowrap; }
 .status-cotizado{ background:#e6f1fb; color:#185fa5; }
 .status-produccion{ background:#faeeda; color:#854f0b; }
 .status-terminado{ background:#eaf3de; color:#3b6d11; }
 .status-despachado{ background:#eeecfe; color:#534ab7; }
 .status-entregado{ background:#e1f5ee; color:#0f6e56; }
-.card{ border-radius:12px; border:1px solid #e7e7e7; }
+.status-rechazado{ background:#fcebeb; color:#a32d2d; }
+
+/* ---------- Barra de progreso del pedido ---------- */
+.progreso-pedido{ display:flex; justify-content:space-between; position:relative; }
+.progreso-pedido .paso{ flex:1; text-align:center; position:relative; }
+.progreso-pedido .paso::before{            /* linea que une los puntos */
+  content:""; position:absolute; top:9px; left:-50%; width:100%; height:3px; background:#dfe3e6; z-index:0;
+}
+.progreso-pedido .paso:first-child::before{ display:none; }
+.progreso-pedido .punto{
+  width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid #dfe3e6;
+  margin:0 auto; position:relative; z-index:1;
+}
+.progreso-pedido .nombre{ font-size:.75rem; color:#999; margin-top:.35rem; }
+.progreso-pedido .paso.hecho .punto{ background:var(--ue-blue); border-color:var(--ue-blue); }
+.progreso-pedido .paso.hecho::before, .progreso-pedido .paso.actual::before{ background:var(--ue-blue); }
+.progreso-pedido .paso.actual .punto{ border-color:var(--ue-blue); box-shadow:0 0 0 4px rgba(75,147,182,.2); }
+.progreso-pedido .paso.hecho .nombre{ color:#555; }
+.progreso-pedido .paso.actual .nombre{ color:var(--ue-black); font-weight:600; }
+
+/* ---------- Historial (linea de tiempo) ---------- */
+.linea-tiempo li{ position:relative; padding-left:1.1rem; padding-bottom:.9rem; border-left:2px solid #e5e5e5; margin-left:.3rem; }
+.linea-tiempo li:last-child{ border-left-color:transparent; padding-bottom:0; }
+.linea-tiempo li::before{
+  content:""; position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--ue-blue);
+}
+
+/* ---------- Disenos ---------- */
+.miniatura-diseno{
+  width:64px; height:64px; border:1px solid var(--ue-border); border-radius:8px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; background:#fafafa;
+  font-size:.7rem; font-weight:600; color:#a32d2d; text-decoration:none;
+}
+.miniatura-diseno img{ width:100%; height:100%; object-fit:cover; }
+.muestra-color{ width:14px; height:14px; border-radius:4px; border:1px solid #ccc; display:inline-block; }
+
+/* ---------- Barras de los reportes (un solo color = magnitud) ---------- */
+.barra-fila{ display:flex; align-items:center; gap:.6rem; margin-bottom:.5rem; font-size:.85rem; }
+.barra-etiqueta{ flex:0 0 38%; color:#555; }
+.barra-pista{ flex:1 1 auto; height:14px; background:#f0f2f3; border-radius:4px; overflow:hidden; }
+.barra-valor{ display:block; height:100%; background:var(--ue-blue); border-radius:0 4px 4px 0; min-width:0; }
+.barra-numero{ flex:0 0 2.5rem; text-align:right; font-weight:600; color:var(--ue-black); }
+
+/* ---------- Pagina publica ---------- */
 .hero-landing{ background:linear-gradient(180deg,var(--ue-black) 0%, #1c1c1c 100%); color:#fff; }
+
+/* ---------- Celular ---------- */
+@media (max-width:767px){
+  .layout{ flex-direction:column; min-height:auto; }
+  .sidebar{ flex:none; width:100%; border-right:0; border-bottom:1px solid var(--ue-border); padding:.5rem; }
+  .sidebar .nav{ flex-direction:row !important; flex-wrap:nowrap; overflow-x:auto; gap:.25rem !important; }
+  .sidebar .nav-link{ white-space:nowrap; padding:.45rem .7rem; }
+  .sidebar-titulo{ display:none; }
+  .contenido{ padding:1rem; }
+  .logo-nav{ height:28px; }
+  .buscador{ max-width:none; }
+  .progreso-pedido .nombre{ font-size:.62rem; }
+}

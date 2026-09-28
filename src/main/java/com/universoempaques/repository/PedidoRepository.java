@@ -8,5 +8,8 @@ import java.util.List;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     List<Pedido> findByCliente(Cliente cliente);
+    List<Pedido> findByClienteOrderByCodigoDesc(Cliente cliente);
+    List<Pedido> findByFechaRegistroBetweenOrderByCodigoAsc(java.time.LocalDateTime desde, java.time.LocalDateTime hasta);
+    boolean existsByUsuario(com.universoempaques.model.Usuario usuario);
     List<Pedido> findAllByOrderByFechaRegistroDesc();
 }

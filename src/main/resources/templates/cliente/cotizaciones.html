@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mis cotizaciones')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('cliente-cotizaciones')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h4 class="mb-0">Mis cotizaciones</h4>
+            <a class="btn btn-ue btn-sm" th:href="@{/cliente/cotizaciones/nueva}">+ Solicitar cotización</a>
+        </div>
+
+        <div class="card p-3 table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="text-muted small">
+                <tr><th>N.º</th><th>Solicitada</th><th>Empaque</th><th>Valor</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${cotizaciones}">
+                    <td th:text="'COT-' + ${c.codigo}">COT-1</td>
+                    <td th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</td>
+                    <td class="small" th:text="${c.especificaciones}">-</td>
+                    <td th:text="${c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : 'Por cotizar'}">-</td>
+                    <td><span class="status-pill" th:classappend="${c.estado.claseCss}" th:text="${c.estado.etiqueta}">Estado</span></td>
+                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/cliente/cotizaciones/{id}(id=${c.codigo})}">Ver</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(cotizaciones)}">
+                    <td colspan="6" class="text-muted text-center py-3">Aún no has solicitado cotizaciones.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

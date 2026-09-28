@@ -21,25 +21,46 @@ las siguientes iteraciones.
 
 ## 2. Configurar la base de datos
 
-No es necesario crear la base de datos a mano: al arrancar la aplicación,
-Spring Boot la crea automáticamente (`createDatabaseIfNotExist=true`) y
-Hibernate genera las tablas a partir de las clases en `model/`. Aun así,
-dejamos el script `src/main/resources/db/schema.sql` como referencia y
-para poder montar la base manualmente si lo prefieren.
+La aplicación **no crea tablas** (`ddl-auto=validate`): solo revisa al
+arrancar que las entidades coincidan con la base de datos. La base se
+crea con el script oficial de Amelie: `src/main/resources/db/schema.sql`.
 
-Abran el archivo `src/main/resources/application.properties` y cambien
-estas dos líneas por su usuario y contraseña reales de MySQL:
+⚠️ El script **borra** la base `universo_empaques` y la crea de nuevo.
 
-```properties
-spring.datasource.username=root
-spring.datasource.password=CAMBIAR_CONTRASENA
+**Windows (MySQL instalado normal):** MySQL Workbench → File → Open SQL
+Script → `schema.sql` → botón del rayo ⚡. O desde la terminal:
+
+```bash
+mysql -u root -p < src/main/resources/db/schema.sql
 ```
 
-Si van a probar el envío de notificaciones por correo (RF-16) más adelante,
-también deberán completar `spring.mail.username` y `spring.mail.password`
-(usando una "contraseña de aplicación" de Gmail, no la contraseña normal
-de la cuenta). Mientras no lo configuren, el resto del sistema funciona
-igual — el envío de correo simplemente no está implementado todavía.
+**Mac con Docker (contenedor `mysql-bd`):**
+
+```bash
+docker start mysql-bd
+docker exec -i mysql-bd mysql -uroot -puniverso123 < src/main/resources/db/schema.sql
+```
+
+**Configuración personal (contraseña de MySQL, puerto, correo...):**
+`application.properties` es compartido y **no se edita** con datos de su
+computador. Si su MySQL NO usa `root` / `universo123` en `localhost:3306`:
+
+1. En la raíz del proyecto copien `application-local.properties.example`
+   con el nombre `application-local.properties`.
+2. Quiten el `#` de la línea que necesiten, ej: `db.contrasena=su_clave`.
+
+Ese archivo lo ignora Git: cada quien tiene el suyo y nadie pisa la
+configuración del otro al hacer `git pull`.
+
+**No restauren respaldos de otro computador:** MySQL en Windows guarda los
+nombres de tabla en minúscula y en Mac/Linux no. Cada uno crea su base
+con `schema.sql`.
+
+Si van a probar el envío de notificaciones por correo (RF-16), pongan
+`spring.mail.username` y `spring.mail.password` en su
+`application-local.properties` (con una "contraseña de aplicación" de
+Gmail, no la contraseña normal de la cuenta). Mientras no lo configuren, el resto del sistema funciona
+igual: cada notificación queda escrita en la consola como "[Notificación simulada]".
 
 ## 3. Ejecutar el proyecto
 
@@ -54,8 +75,8 @@ abajo), y ejecuten la clase `GestionRepartosEmpaquesApplication.java`
 mvn spring-boot:run
 ```
 
-La primera vez que arranca, la aplicación:
-1. Crea la base de datos y las tablas.
+La primera vez que arranca (con la base ya creada por `schema.sql`), la aplicación:
+1. Inserta los roles, las áreas y 4 productos de ejemplo.
 2. Crea automáticamente un usuario **Administrador** con:
    - Correo: `admin@universoempaques.com`
    - Contraseña: `admin123`
@@ -63,7 +84,25 @@ La primera vez que arranca, la aplicación:
 
 Abran el navegador en **http://localhost:8080**
 
-## 4. Qué pueden probar ya mismo
+## 4. Usuarios de prueba
+
+Con `app.datos-prueba=true` (valor por defecto), al arrancar se crean o
+restablecen estos usuarios. **Todos usan la contraseña `prueba123`**:
+
+| Tipo | Correo | Entra a |
+|------|--------|---------|
+| Administrador | `admin@prueba.com` | /admin/panel |
+| Comercial | `comercial@prueba.com` | /comercial/panel |
+| Diseño | `diseno@prueba.com` | /diseno/panel |
+| Producción | `produccion@prueba.com` | /produccion/panel |
+| Bodega | `bodega@prueba.com` | /bodega/panel |
+| Cliente (NIT 900000001-1) | `cliente@prueba.com` | /cliente/panel |
+
+Si cambian la contraseña de alguno desde la app, al reiniciar vuelve a
+`prueba123`. En el computador de producción pongan `app.datos-prueba=false`
+en su `application-local.properties`.
+
+## 4.1 Qué pueden probar ya mismo
 
 - Entrar a `/` → página de inicio pública.
 - Clic en "Registrarme" → crear una cuenta de cliente (RF-02) y quedar
@@ -88,7 +127,7 @@ src/main/java/com/universoempaques/
 src/main/resources/
  ├── templates/    -> vistas HTML (Thymeleaf)
  ├── static/css/   -> estilos (colores de marca de Universo Empaques)
- └── db/schema.sql -> script de referencia de la base de datos
+ └── db/schema.sql -> script OFICIAL de la base de datos (modelo de Amelie)
 ```
 
 ## 6. Próximos pasos sugeridos (siguientes iteraciones)

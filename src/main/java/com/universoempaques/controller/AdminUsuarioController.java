@@ -1,13 +1,16 @@
 package com.universoempaques.controller;
 
+import com.universoempaques.config.AppUserPrincipal;
 import com.universoempaques.dto.RegistrarUsuarioForm;
 import com.universoempaques.model.Usuario;
 import com.universoempaques.service.UsuarioService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Modulo de administracion: registrar trabajadores (RF-03) y
@@ -39,18 +42,22 @@ public class AdminUsuarioController {
 
     @GetMapping("/{codigo}/editar")
     public String mostrarFormularioEditar(@PathVariable Integer codigo, Model model) {
-        Usuario usuario = usuarioService.listarTodos().stream()
-                .filter(u -> u.getCodigo().equals(codigo))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        Usuario usuario = usuarioService.buscarPorId(codigo);
 
         RegistrarUsuarioForm form = new RegistrarUsuarioForm();
         form.setCodigo(usuario.getCodigo());
         form.setNombre(usuario.getNombre());
         form.setCorreo(usuario.getCorreo());
-        form.setTelefono(usuario.getTelefono() != null ? String.valueOf(usuario.getTelefono()) : "");
-        form.setCodigoRol(usuario.getRol() != null ? usuario.getRol().getCodigo() : null);
-        form.setCodigoArea(usuario.getArea() != null ? usuario.getArea().getCodigo() : null);
+        form.setNumDocumento(usuario.getNumDocumento());
+        form.setTelefonoPersonal(usuario.getTelefonoPersonal());
+        form.setTelefonoEmpresa(usuario.getTelefonoEmpresa());
+        form.setFechaIngreso(usuario.getFechaIngreso());
+        form.setFecVencimientoContrato(usuario.getFecVencimientoContrato());
+        form.setCantHorasTrabajadas(usuario.getCantHorasTrabajadas());
+        form.setNomina(usuario.getNomina());
+        // Modelo v2: rol y area salen de las tablas puente (el principal)
+        form.setCodigoRol(usuario.getRolPrincipal() != null ? usuario.getRolPrincipal().getCodigo() : null);
+        form.setCodigoArea(usuario.getAreaPrincipal() != null ? usuario.getAreaPrincipal().getCodigo() : null);
 
         cargarListasDeApoyo(model);
         model.addAttribute("registrarUsuarioForm", form);
@@ -60,19 +67,32 @@ public class AdminUsuarioController {
 
     @PostMapping
     public String guardar(@Valid @ModelAttribute RegistrarUsuarioForm registrarUsuarioForm,
-                          BindingResult resultado, Model model) {
+                          BindingResult resultado, Model model, Authentication auth) {
         if (resultado.hasErrors()) {
             cargarListasDeApoyo(model);
             model.addAttribute("esEdicion", registrarUsuarioForm.getCodigo() != null);
             return "interno/admin-usuario-form";
         }
         try {
-            usuarioService.guardar(registrarUsuarioForm);
+            Integer quienEdita = ((AppUserPrincipal) auth.getPrincipal()).getUsuario().getCodigo();
+            usuarioService.guardar(registrarUsuarioForm, quienEdita);
         } catch (IllegalArgumentException ex) {
             cargarListasDeApoyo(model);
             model.addAttribute("esEdicion", registrarUsuarioForm.getCodigo() != null);
             model.addAttribute("errorNegocio", ex.getMessage());
             return "interno/admin-usuario-form";
+        }
+        return "redirect:/admin/usuarios?guardado";
+    }
+
+    @PostMapping("/{codigo}/eliminar")
+    public String eliminar(@PathVariable Integer codigo, Authentication auth, RedirectAttributes flash) {
+        Integer quienElimina = ((AppUserPrincipal) auth.getPrincipal()).getUsuario().getCodigo();
+        try {
+            usuarioService.eliminar(codigo, quienElimina);
+            flash.addFlashAttribute("exito", "Usuario eliminado.");
+        } catch (IllegalArgumentException ex) {
+            flash.addFlashAttribute("error", ex.getMessage());
         }
         return "redirect:/admin/usuarios";
     }

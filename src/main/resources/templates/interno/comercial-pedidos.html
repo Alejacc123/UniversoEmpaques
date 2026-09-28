@@ -1,66 +1,51 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Pedidos — Universo Empaques</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;1,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/estilo.css}">
-</head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Pedidos')}"></head>
 <body>
 
-<nav class="navbar navbar-dark navbar-ue px-4">
-    <span class="navbar-brand brand-word fs-5 mb-0">UNIVERSO<span class="text-ue">.</span></span>
-    <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-ue">Cargo: Comercial</span>
-        <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Cerrar sesión</button>
-        </form>
-    </div>
-</nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<div class="d-flex">
-    <div class="sidebar p-3" style="width:230px;">
-        <div class="nav flex-column gap-1">
-            <a class="nav-link" th:href="@{/comercial/panel}">Inicio</a>
-            <a class="nav-link" th:href="@{/comercial/clientes}">Clientes</a>
-            <a class="nav-link active" th:href="@{/comercial/pedidos}">Pedidos</a>
-        </div>
-    </div>
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-pedidos')}"></aside>
 
-    <div class="flex-grow-1 p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h4 class="mb-0">Pedidos</h4>
             <a class="btn btn-ue btn-sm" th:href="@{/comercial/pedidos/nuevo}">+ Registrar pedido</a>
         </div>
 
-        <div class="card p-3">
-            <table class="table table-sm align-middle mb-0">
+        <input type="search" class="form-control form-control-sm buscador" data-filtro-tabla="tablaPedidos" placeholder="Buscar por número o cliente...">
+
+        <div class="card p-3 table-responsive">
+            <table id="tablaPedidos" class="table table-sm align-middle mb-0">
                 <thead class="text-muted small">
-                <tr><th>ID</th><th>Cliente</th><th>Fecha registro</th><th>Estado actual</th><th></th></tr>
+                <tr><th>N.º</th><th>Cliente</th><th>Registrado</th><th>Entrega</th><th>Estado actual</th><th></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="p : ${pedidos}">
                     <td th:text="'PED-' + ${p.codigo}">PED-1</td>
-                    <td th:text="${p.cliente != null ? p.cliente.nombre : '—'}">Cliente</td>
-                    <td th:text="${#temporals.format(p.fechaRegistro, 'dd/MM/yyyy')}">-</td>
                     <td>
-              <span class="status-pill status-cotizado"
-                    th:text="${pedidoService.estadoActual(p) != null ? pedidoService.estadoActual(p).estado : 'Sin estado'}">
-                Estado
-              </span>
+                        <span th:text="${p.cliente != null ? p.cliente.nombre : '—'}">Cliente</span>
+                        <span th:if="${p.usuario == null}" class="status-pill status-cotizado ms-1" title="El cliente lo pidió desde la plataforma">Web</span>
                     </td>
-                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/comercial/pedidos/{id}(id=${p.codigo})}">Ver detalle</a></td>
+                    <td th:text="${#temporals.format(p.fechaRegistro, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${p.fechaEntrega != null ? #temporals.format(p.fechaEntrega, 'dd/MM/yyyy') : '—'}">-</td>
+                    <td th:with="e=${pedidoService.estadoActual(p)}">
+                        <span th:if="${e != null}" class="status-pill" th:classappend="${e.estado.claseCss}" th:text="${e.estado.etiqueta}">Estado</span>
+                        <span th:if="${e == null}" class="text-muted small">Sin estado</span>
+                    </td>
+                    <td><a class="btn btn-sm btn-outline-ue" th:href="@{/comercial/pedidos/{id}(id=${p.codigo})}">Ver</a></td>
                 </tr>
-                <tr th:if="${#lists.isEmpty(pedidos)}">
-                    <td colspan="5" class="text-muted text-center py-3">Aún no hay pedidos registrados.</td>
+                <tr data-sin-datos th:if="${#lists.isEmpty(pedidos)}">
+                    <td colspan="6" class="text-muted text-center py-3">Aún no hay pedidos registrados.</td>
                 </tr>
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
 </div>
 
+<script th:src="@{/js/filtro-tabla.js}"></script>
 </body>
 </html>

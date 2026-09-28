@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Cotización')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('comercial-cotizaciones')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+
+        <th:block th:with="c=${cotizacion}">
+        <a class="small text-ue text-decoration-none" th:href="@{/comercial/cotizaciones}">&larr; Volver a cotizaciones</a>
+        <h4 class="mt-2 mb-3">
+            <span th:text="'Cotización COT-' + ${c.codigo}">Cotización</span>
+            <span class="status-pill" th:classappend="${c.estado.claseCss}" th:text="${c.estado.etiqueta}">Estado</span>
+        </h4>
+
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="card p-4 h-100">
+                    <h6 class="mb-3">Solicitud del cliente</h6>
+                    <dl class="row mb-0 small">
+                        <dt class="col-sm-4">Cliente</dt>
+                        <dd class="col-sm-8" th:text="${c.cliente.nombre + ' (NIT ' + c.cliente.nit + ')'}">-</dd>
+                        <dt class="col-sm-4">Contacto</dt>
+                        <dd class="col-sm-8" th:text="${c.cliente.correo + (c.cliente.celular != null ? ' · ' + c.cliente.celular : '')}">-</dd>
+                        <dt class="col-sm-4">Fecha</dt>
+                        <dd class="col-sm-8" th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</dd>
+                        <dt class="col-sm-4">Empaque</dt>
+                        <dd class="col-sm-8" th:text="${c.especificaciones}">-</dd>
+                        <dt class="col-sm-4" th:if="${c.usuario != null}">Cotizada por</dt>
+                        <dd class="col-sm-8" th:if="${c.usuario != null}" th:text="${c.usuario.nombre}">-</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card p-4 h-100">
+                    <!-- RF-07: poner o corregir el valor mientras el cliente no responda -->
+                    <th:block th:if="${c.estado.name() == 'SOLICITADA' or c.estado.name() == 'COTIZADA'}">
+                        <h6 class="mb-3" th:text="${c.estado.name() == 'SOLICITADA'} ? 'Registrar valor' : 'Corregir valor'">Valor</h6>
+                        <form th:action="@{/comercial/cotizaciones/{id}/valor(id=${c.codigo})}"
+                              th:object="${registrarValorCotizacionForm}" method="post">
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" min="1" max="9999999999" class="form-control" th:field="*{valor}"
+                                       th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></div>
+                            </div>
+                            <button class="btn btn-ue w-100">Guardar valor</button>
+                        </form>
+                        <p class="text-muted small mt-2 mb-0" th:if="${c.estado.name() == 'COTIZADA'}">
+                            Esperando que el cliente apruebe o rechace.
+                        </p>
+                    </th:block>
+
+                    <!-- RF-10: de la cotizacion aprobada sale el pedido -->
+                    <th:block th:if="${c.estado.name() == 'APROBADA'}">
+                        <h6 class="mb-2">Aprobada por el cliente</h6>
+                        <p class="fs-4 fw-bold mb-3" th:text="${c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : 'Por cotizar'}">$0</p>
+                        <form th:if="${c.pedido == null}" th:action="@{/comercial/cotizaciones/{id}/pedido(id=${c.codigo})}" method="post">
+                            <button class="btn btn-ue w-100">Generar pedido</button>
+                        </form>
+                        <a th:if="${c.pedido != null}" class="btn btn-outline-ue w-100"
+                           th:href="@{/comercial/pedidos/{id}(id=${c.pedido.codigo})}"
+                           th:text="'Ver pedido PED-' + ${c.pedido.codigo}">Ver pedido</a>
+                    </th:block>
+
+                    <th:block th:if="${c.estado.name() == 'RECHAZADA'}">
+                        <h6 class="mb-2">Rechazada por el cliente</h6>
+                        <p class="text-muted small mb-0" th:text="${'Valor ofrecido: ' + (c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : '—')}">-</p>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+        </th:block>
+    </main>
+</div>
+
+</body>
+</html>
