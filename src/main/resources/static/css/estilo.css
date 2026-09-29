@@ -24,7 +24,7 @@ body{ font-family:'Poppins', sans-serif; background:var(--ue-bg); color:var(--ue
 
 /* Logo oficial (static/img). logo-blanco va sobre la barra negra; logo-negro sobre fondo blanco. */
 .logo-nav{ height:34px; width:auto; display:block; }
-.logo-card{ width:100%; max-width:260px; height:auto; display:block; }
+.logo-card{ width:100%; max-width:260px; height:auto; display:block; margin:0 auto; } /* centrado en login y registro */
 
 /* ---------- Botones ---------- */
 .btn-ue{ background:var(--ue-blue); border-color:var(--ue-blue); color:#fff; }

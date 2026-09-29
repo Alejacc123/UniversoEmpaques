@@ -2,6 +2,8 @@ package com.universoempaques.controller;
 
 import com.universoempaques.dto.ConfiguracionRespaldoForm;
 import com.universoempaques.service.BackupService;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -23,7 +25,8 @@ import java.time.LocalTime;
  * Interfaz del administrador para la copia de seguridad (RF-19).
  * La logica del respaldo esta en BackupService (hecho por Amelie);
  * aqui se muestra el estado, se cambia la configuracion, se hace una
- * copia total manual y se descargan los archivos. Solo rol ADMIN.
+ * copia total manual, se descargan los archivos y se RESTAURA la base
+ * desde una copia. Solo rol ADMIN.
  */
 @Controller
 @RequestMapping("/admin/respaldos")
@@ -47,6 +50,10 @@ public class AdminRespaldoController {
     private String mostrar(Model model, ConfiguracionRespaldoForm form) {
         model.addAttribute("backup", backupService);
         model.addAttribute("archivos", backupService.listarArchivos());
+        var restaurables = backupService.listarRestaurables();
+        model.addAttribute("restaurables", restaurables);
+        model.addAttribute("hayPuntoDeshacer", restaurables.stream()
+                .anyMatch(o -> o.archivo().equals(BackupService.ANTES_DE_RESTAURAR)));
         model.addAttribute("configuracionRespaldoForm", form);
         return "interno/admin-respaldos";
     }
@@ -81,6 +88,34 @@ public class AdminRespaldoController {
             return mostrar(model, configuracionRespaldoForm);
         }
         return "redirect:/admin/respaldos";
+    }
+
+    /** Palabra que el admin debe escribir para confirmar (evita restaurar por un clic accidental). */
+    static final String PALABRA_CONFIRMACION = "RESTAURAR";
+
+    /**
+     * Restaura la base desde un archivo de respaldo. Como los datos cambian
+     * por completo (incluidos los usuarios), al terminar se cierra la sesion
+     * y se vuelve al login.
+     */
+    @PostMapping("/restaurar")
+    public String restaurar(@RequestParam(required = false) String archivo,
+                            @RequestParam(defaultValue = "") String confirmacion,
+                            HttpServletRequest request, RedirectAttributes flash) throws ServletException {
+        if (archivo == null || archivo.isBlank()) {
+            flash.addFlashAttribute("error", "Elige la copia que quieres restaurar.");
+            return "redirect:/admin/respaldos";
+        }
+        if (!PALABRA_CONFIRMACION.equalsIgnoreCase(confirmacion.trim())) {
+            flash.addFlashAttribute("error", "Para restaurar escribe " + PALABRA_CONFIRMACION + " en la casilla de confirmación.");
+            return "redirect:/admin/respaldos";
+        }
+        if (!backupService.restaurar(archivo)) {
+            flash.addFlashAttribute("errorRestauracion", backupService.getUltimoMensaje());
+            return "redirect:/admin/respaldos";
+        }
+        request.logout();
+        return "redirect:/login?restaurado";
     }
 
     @GetMapping("/descargar/{nombre:.+}")

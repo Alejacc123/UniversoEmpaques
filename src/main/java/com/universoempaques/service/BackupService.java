@@ -50,11 +50,16 @@ import java.util.stream.Stream;
  *    configura desde la pantalla y se guarda en
  *    <carpeta de respaldos>/configuracion.properties (propio de cada equipo).
  *  - Estado de la ultima ejecucion, lista de archivos y descarga segura.
+ *  - Restaurar la base desde un archivo de la carpeta (ver restaurar()).
+ *    Antes de restaurar se guarda el estado actual en antes-de-restaurar.sql,
+ *    asi que una restauracion equivocada se puede deshacer.
  */
 @Service
 public class BackupService {
 
     private static final Logger log = LoggerFactory.getLogger(BackupService.class);
+    /** Copia automatica del estado que habia justo antes de la ultima restauracion. */
+    public static final String ANTES_DE_RESTAURAR = "antes-de-restaurar.sql";
     private static final String[] DIAS = {"1-lunes", "2-martes", "3-miercoles", "4-jueves", "5-viernes", "6-sabado", "7-domingo"};
 
     @Value("${backup.activo:true}")
@@ -107,6 +112,10 @@ public class BackupService {
             if (tamanoBytes < 1024 * 1024) return String.format("%.1f KB", tamanoBytes / 1024.0);
             return String.format("%.1f MB", tamanoBytes / (1024.0 * 1024));
         }
+    }
+
+    /** Una opcion del selector "Restaurar la base de datos". */
+    public record OpcionRestauracion(String archivo, String descripcion) {
     }
 
 
@@ -213,11 +222,7 @@ public class BackupService {
 
         Path temporal = carpeta.resolve("completo.tmp");
         try {
-            ejecutar(List.of(rutaMysqldump, "--defaults-extra-file=" + opciones,
-                    "--single-transaction", "--routines", "--triggers",
-                    "--default-character-set=utf8mb4",
-                    "--result-file=" + temporal,
-                    "--databases", baseDatos), null);
+            volcarCompleto(opciones, temporal);
 
             if (mensualDebido) {
                 publicar(temporal, carpeta.resolve("mensual.sql"));
@@ -233,6 +238,110 @@ public class BackupService {
         } finally {
             borrarSilencioso(temporal);
         }
+    }
+
+    /** mysqldump de TODA la base (con CREATE DATABASE/USE, para restaurarla sola). */
+    private void volcarCompleto(Path opciones, Path destino) throws IOException {
+        ejecutar(List.of(rutaMysqldump, "--defaults-extra-file=" + opciones,
+                "--single-transaction", "--routines", "--triggers",
+                "--default-character-set=utf8mb4",
+                "--result-file=" + destino,
+                "--databases", baseDatos), null);
+    }
+
+    // ------------------------------------------------------------------
+    // Restaurar
+    // ------------------------------------------------------------------
+
+    /** Archivos que se pueden restaurar desde la pantalla. */
+    public static boolean esRestaurable(String nombre) {
+        return nombre != null && (nombre.equals("mensual.sql") || nombre.equals("semanal.sql")
+                || nombre.equals(ANTES_DE_RESTAURAR)
+                || nombre.matches("^parcial_[A-Za-z0-9_-]+\\.sql$"));
+    }
+
+    /**
+     * Restaura la base de datos desde un archivo de la carpeta de respaldos.
+     * <ul>
+     *   <li>mensual.sql, semanal.sql y antes-de-restaurar.sql son copias
+     *       completas: se aplican solas.</li>
+     *   <li>parcial_&lt;dia&gt;.sql solo trae las tablas que cambiaron: se
+     *       aplica semanal.sql y encima ese parcial (= estado de ese dia).</li>
+     * </ul>
+     * Antes de tocar la base se guarda el estado actual en
+     * antes-de-restaurar.sql (salvo que se este restaurando justo ese
+     * archivo, para no perder el punto de "deshacer").
+     *
+     * @return true si salio bien; el detalle queda en getUltimoMensaje()
+     * @throws IllegalArgumentException si el archivo no existe o no se puede restaurar
+     */
+    public boolean restaurar(String nombre) {
+        Path archivo = archivoParaDescargar(nombre);   // valida el nombre y que exista
+        if (!esRestaurable(nombre)) {
+            throw new IllegalArgumentException("Ese archivo no se puede restaurar.");
+        }
+        boolean esParcial = nombre.startsWith("parcial_");
+        Path semanal = archivo.resolveSibling("semanal.sql");
+        if (esParcial && !Files.isRegularFile(semanal)) {
+            throw new IllegalArgumentException("Para restaurar un parcial hace falta semanal.sql y no está en la carpeta.");
+        }
+
+        return conCandado(opciones -> {
+            Path carpeta = archivo.getParent();
+            boolean guardoPrevio = false;
+            if (!nombre.equals(ANTES_DE_RESTAURAR)) {
+                Path temporal = carpeta.resolve("antes.tmp");
+                try {
+                    volcarCompleto(opciones, temporal);
+                    publicar(temporal, carpeta.resolve(ANTES_DE_RESTAURAR));
+                    guardoPrevio = true;
+                } finally {
+                    borrarSilencioso(temporal);
+                }
+            }
+            if (esParcial) {
+                aplicar(opciones, semanal, false);
+                aplicar(opciones, archivo, true);
+            } else {
+                aplicar(opciones, archivo, false);
+            }
+            log.warn("Base de datos restaurada desde {}", nombre);
+            return "Base de datos restaurada desde " + (esParcial ? "semanal.sql + " : "") + nombre + "."
+                    + (guardoPrevio ? " El estado anterior quedó en " + ANTES_DE_RESTAURAR + " por si hay que deshacerlo." : "");
+        });
+    }
+
+    /**
+     * Ejecuta un .sql con el cliente mysql. Las copias completas traen su
+     * propio "USE"; los parciales no, por eso a ellos se les indica la base.
+     */
+    private void aplicar(Path opciones, Path archivo, boolean indicarBase) throws IOException {
+        List<String> comando = new ArrayList<>(List.of(rutaMysql, "--defaults-extra-file=" + opciones,
+                "--default-character-set=utf8mb4"));
+        if (indicarBase) comando.add(baseDatos);
+        ejecutar(comando, archivo);
+    }
+
+    /** Opciones del selector de restauracion, con una descripcion clara de cada una. */
+    public List<OpcionRestauracion> listarRestaurables() {
+        List<ArchivoRespaldo> archivos = listarArchivos();
+        boolean haySemanal = archivos.stream().anyMatch(a -> a.nombre().equals("semanal.sql"));
+        List<OpcionRestauracion> opciones = new ArrayList<>();
+        for (ArchivoRespaldo a : archivos) {
+            String n = a.nombre();
+            if (!esRestaurable(n) || (n.startsWith("parcial_") && !haySemanal)) continue;
+            String fecha = a.modificado().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            String descripcion;
+            if (n.equals(ANTES_DE_RESTAURAR)) {
+                descripcion = "Deshacer la última restauración (estado del " + fecha + ")";
+            } else if (n.startsWith("parcial_")) {
+                descripcion = tipoDe(n).replace("Parcial del", "Estado del") + " — semanal.sql + " + n + " (" + fecha + ")";
+            } else {
+                descripcion = tipoDe(n) + " — " + n + " (" + fecha + ")";
+            }
+            opciones.add(new OpcionRestauracion(n, descripcion));
+        }
+        return opciones;
     }
 
     private void respaldoParcial(Path opciones, Path carpeta, LocalDate hoy) throws IOException {
@@ -426,6 +535,7 @@ public class BackupService {
     private static String tipoDe(String nombre) {
         if (nombre.equals("mensual.sql")) return "Total (para el ente externo)";
         if (nombre.equals("semanal.sql")) return "Completa semanal";
+        if (nombre.equals(ANTES_DE_RESTAURAR)) return "Estado previo a la última restauración";
         if (nombre.startsWith("parcial_")) {
             String dia = nombre.substring(nombre.indexOf('-') + 1, nombre.length() - 4);
             return "Parcial del " + dia;
@@ -530,6 +640,7 @@ public class BackupService {
         LocalDate hoy = LocalDate.now();
         try (Stream<Path> archivos = Files.list(carpeta)) {
             return archivos.filter(p -> p.getFileName().toString().endsWith(".sql"))
+                    .filter(p -> !p.getFileName().toString().equals(ANTES_DE_RESTAURAR))
                     .anyMatch(p -> fechaDe(p).equals(hoy));
         } catch (IOException e) {
             return false;

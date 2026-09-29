@@ -18,7 +18,7 @@ una entrada al final de cada sesión (en su propio commit).
 | RF-14 / RF-15 / RF-17 | Estado del pedido, consulta y despacho | Hecho: flujo SOLICITADO → EN_DISEÑO → EN_PRODUCCIÓN → TERMINADO → DESPACHADO → ENTREGADO; cola de trabajo por área; el cliente ve el avance en "Mis pedidos" |
 | RF-16 | Notificaciones por correo (Observer) | Hecho: `EstadoPedidoCambiadoEvent` + `NotificacionService` (asíncrono). Sin correo configurado, deja el aviso en el log |
 | RF-18 | Reportes | Hecho: pantalla del admin con rango de fechas: pedidos por estado, valor, cotizaciones y tasa de aprobación, tiempo promedio por etapa y hasta la entrega, productos más pedidos; descarga CSV para Excel |
-| RF-19 | Copia de seguridad | Hecho (mensual.sql = copia TOTAL que se entrega al ente externo; se sobrescribe): `BackupService` (Amelie) + pantalla del admin: copia total manual (reemplaza mensual.sql), configuración de la copia automática (encendida, hora, segunda carpeta) sin reiniciar, estado y descarga. Falta restaurar desde la app |
+| RF-19 | Copia de seguridad | Hecho (mensual.sql = copia TOTAL que se entrega al ente externo; se sobrescribe): `BackupService` (Amelie) + pantalla del admin: copia total manual (reemplaza mensual.sql), configuración de la copia automática (encendida, hora, segunda carpeta) sin reiniciar, estado, descarga y **restaurar** (con punto de deshacer `antes-de-restaurar.sql`) |
 
 ## Decisiones tomadas
 
@@ -29,7 +29,7 @@ una entrada al final de cada sesión (en su propio commit).
 - Configuración por computador en `application-local.properties` (ignorado por Git; plantilla en `application-local.properties.example`). `application.properties` es compartido y no lleva contraseñas ni rutas personales.
 - `.gitattributes` unifica finales de línea (LF) entre Mac y Windows.
 - Respaldos (RF-19) apagados por defecto; se activan solo en el computador servidor.
-- Ramas: una por integrante (`Nombre-Area`), Pull Request hacia `main`, Alejandra hace el merge.
+- Ramas: una por integrante (`Nombre-Area`). Pull Request hacia **`Development`**; ahí se prueba y Alejandra pasa `Development` → `main`.
 
 ## Preguntas pendientes para Amelie
 
@@ -86,3 +86,12 @@ una entrada al final de cada sesión (en su propio commit).
 - RF-18: `ReporteService` + `AdminReporteController` + `admin-reportes.html`. Prueba `ReporteServiceTest`.
 - RF-10: el cliente solicita un pedido directo ("Mis pedidos" → "+ Solicitar pedido"). Queda SOLICITADO sin comercial (`CodigoUsuario` NULL, marcado "Web"); quien lo envía a diseño queda a cargo.
 - Copias: `mensual.sql` se presenta como la copia **Total** (la que se entrega al ente externo); no se guarda histórico.
+
+### 2026-09-29 — Juan Gamboa (Backend)
+- PR #1 (`Gamboa-Backend` → `main`) fusionado. Desde ahora los PR van a `Development`.
+- RF-19 completo: **restaurar la base desde la app** (Administración → Copias de seguridad → "Restaurar la base de datos").
+  - Se elige la copia (total, semanal, el estado de un día = semanal + parcial, o deshacer) y se confirma escribiendo RESTAURAR.
+  - Antes de restaurar se guarda el estado actual en `antes-de-restaurar.sql` (aparece en la lista para deshacer).
+  - Al terminar se cierra la sesión y el login avisa que la base se restauró.
+  - Usa `backup.ruta-mysql` (el cliente `mysql`), igual que las copias usan `mysqldump`.
+- Prueba `BackupServiceTest`.
