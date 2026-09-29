@@ -12,11 +12,11 @@
         <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h4 class="mb-0">Mis pedidos</h4>
-            <a class="btn btn-ue btn-sm" th:href="@{/cliente/pedidos/nuevo}">+ Solicitar pedido</a>
+            <a class="btn btn-ue btn-sm" th:href="@{/cliente/pedidos/nuevo}"><svg class="ic"><use th:href="@{/img/iconos.svg#mas}"/></svg>Solicitar pedido</a>
         </div>
 
         <div class="card p-3 table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-sm table-hover align-middle mb-0">
                 <thead class="text-muted small">
                 <tr><th>N.º</th><th>Registrado</th><th>Entrega estimada</th><th>Estado</th><th></th></tr>
                 </thead>

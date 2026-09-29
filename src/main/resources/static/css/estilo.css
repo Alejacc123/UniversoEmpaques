@@ -116,8 +116,122 @@ a.tarjeta-dato:hover{ border-color:var(--ue-blue); box-shadow:0 2px 8px rgba(75,
 .barra-valor{ display:block; height:100%; background:var(--ue-blue); border-radius:0 4px 4px 0; min-width:0; }
 .barra-numero{ flex:0 0 2.5rem; text-align:right; font-weight:600; color:var(--ue-black); }
 
-/* ---------- Pagina publica ---------- */
-.hero-landing{ background:linear-gradient(180deg,var(--ue-black) 0%, #1c1c1c 100%); color:#fff; }
+
+/* =====================================================================
+   Iconos (static/img/iconos.svg) y detalles visuales generales
+   ===================================================================== */
+.ic{
+  width:1.15em; height:1.15em; flex:0 0 auto; vertical-align:-.2em;
+  fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+.btn .ic{ margin-right:.35rem; }
+.btn-sm .ic{ width:1em; height:1em; }
+
+/* Barra superior: avatar con iniciales + nombre */
+.navbar-ue{ position:sticky; top:0; z-index:1030; }
+.usuario-nav{ display:flex; align-items:center; gap:.5rem; color:#fff; text-decoration:none; }
+.usuario-nav:hover{ color:#fff; opacity:.85; }
+.avatar{
+  width:32px; height:32px; border-radius:50%; background:var(--ue-blue); color:#fff;
+  display:inline-flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:600;
+}
+.btn-salir{ color:#ddd; border:1px solid #444; }
+.btn-salir:hover{ color:#fff; border-color:#888; background:transparent; }
+
+/* Menu lateral con iconos, fijo al hacer scroll */
+.sidebar .nav{ position:sticky; top:calc(var(--navbar-alto) + 1rem); }
+.sidebar .nav-link{ display:flex; align-items:center; gap:.6rem; }
+.sidebar .nav-link .ic{ color:#8a8f93; }
+.sidebar .nav-link.active .ic{ color:#fff; }
+.sidebar .nav-link:hover .ic{ color:var(--ue-blue); }
+.sidebar .nav-link.active:hover .ic{ color:#fff; }
+
+/* Tarjetas un poco mas suaves */
+.card{ box-shadow:0 1px 2px rgba(17,17,17,.04); }
+.contenido > h4, .contenido h4:first-of-type{ font-weight:600; }
+
+/* Tarjetas de numeros de los paneles */
+.dato-cabecera{ display:flex; align-items:center; gap:.6rem; margin-bottom:.35rem; }
+.dato-icono{
+  width:38px; height:38px; border-radius:10px; background:var(--ue-blue-soft); color:var(--ue-blue);
+  display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto;
+}
+.dato-icono .ic{ width:20px; height:20px; }
+a.tarjeta-dato:hover .dato-icono{ background:var(--ue-blue); color:#fff; }
+
+/* Tablas: encabezados discretos */
+.table thead th{
+  font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+  color:#8a8f93; border-bottom-width:1px;
+}
+.table-hover > tbody > tr:hover > *{ background:var(--ue-blue-soft); }
+
+/* Pantallas de login y registro */
+.pagina-acceso{
+  min-height:100vh; padding:2rem 1rem;
+  background:radial-gradient(circle at 15% 10%, rgba(75,147,182,.18), transparent 40%),
+             radial-gradient(circle at 85% 90%, rgba(75,147,182,.12), transparent 45%), var(--ue-bg);
+}
+.tarjeta-acceso{ border:0; box-shadow:0 10px 30px rgba(17,17,17,.08); }
+
+/* =====================================================================
+   Pagina publica (landing)
+   ===================================================================== */
+.landing section{ scroll-margin-top:var(--navbar-alto); }
+.landing .nav-publica a{ color:#cfd3d6; text-decoration:none; font-size:.9rem; }
+.landing .nav-publica a:hover{ color:#fff; }
+.hero-landing{
+  background:
+    radial-gradient(circle at 85% 20%, rgba(75,147,182,.35), transparent 45%),
+    linear-gradient(180deg, var(--ue-black) 0%, #1b1f22 100%);
+  color:#fff;
+}
+.hero-etiqueta{
+  display:inline-flex; align-items:center; gap:.4rem; font-size:.8rem; font-weight:500;
+  background:rgba(75,147,182,.18); color:#9fd0e6; border:1px solid rgba(75,147,182,.4);
+  padding:.3rem .8rem; border-radius:20px;
+}
+.hero-landing h1{ font-weight:700; letter-spacing:-.5px; }
+.hero-landing .lead{ color:#b9c0c5; }
+.hero-puntos{ list-style:none; padding:0; margin:1.5rem 0 0; display:flex; flex-wrap:wrap; gap:.5rem 1.25rem; }
+.hero-puntos li{ display:flex; align-items:center; gap:.4rem; font-size:.88rem; color:#d6dade; }
+.hero-puntos .ic{ color:var(--ue-blue); }
+.btn-hero-sec{ color:#fff; border:1px solid rgba(255,255,255,.35); }
+.btn-hero-sec:hover{ color:#fff; border-color:#fff; background:rgba(255,255,255,.06); }
+
+/* Tarjeta de ejemplo del seguimiento, dentro del hero */
+.demo-seguimiento{
+  background:#fff; color:var(--ue-black); border-radius:16px; padding:1.25rem;
+  box-shadow:0 20px 50px rgba(0,0,0,.35); max-width:440px; margin-left:auto;
+}
+.demo-seguimiento .demo-fila{ display:flex; justify-content:space-between; align-items:center; font-size:.85rem; }
+.demo-producto{ display:flex; align-items:center; gap:.75rem; padding:.75rem; background:#f7f9fa; border-radius:10px; }
+
+.seccion-titulo{ font-weight:700; letter-spacing:-.3px; }
+.seccion-sub{ color:#6c757d; max-width:620px; margin:0 auto; }
+.paso-numero{
+  width:52px; height:52px; border-radius:14px; background:var(--ue-blue-soft); color:var(--ue-blue);
+  display:inline-flex; align-items:center; justify-content:center; position:relative;
+}
+.paso-numero .ic{ width:24px; height:24px; }
+.paso-numero span{
+  position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%;
+  background:var(--ue-black); color:#fff; font-size:.72rem; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+}
+.tarjeta-producto{ height:100%; transition:transform .15s, box-shadow .15s; }
+.tarjeta-producto:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(17,17,17,.08); }
+.producto-figura{
+  height:110px; border-radius:10px 10px 0 0; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, #e9f2f6, #d6e8f0); color:var(--ue-blue);
+}
+.producto-figura .ic{ width:48px; height:48px; stroke-width:1.3; }
+.producto-precio{ font-weight:600; color:var(--ue-blue-dark); }
+.beneficio .ic{ width:26px; height:26px; color:var(--ue-blue); }
+.banda-cta{ background:linear-gradient(120deg, var(--ue-blue-dark), var(--ue-blue)); color:#fff; border-radius:18px; }
+.pie-publico{ background:var(--ue-black); color:#aab1b6; font-size:.88rem; }
+.pie-publico a{ color:#d6dade; text-decoration:none; }
+.pie-publico a:hover{ color:#fff; }
 
 /* ---------- Celular ---------- */
 @media (max-width:767px){
@@ -130,4 +244,7 @@ a.tarjeta-dato:hover{ border-color:var(--ue-blue); box-shadow:0 2px 8px rgba(75,
   .logo-nav{ height:28px; }
   .buscador{ max-width:none; }
   .progreso-pedido .nombre{ font-size:.62rem; }
+  .sidebar .nav{ position:static; }
+  .demo-seguimiento{ margin:2rem auto 0; }
+  .landing .nav-publica{ display:none !important; }
 }

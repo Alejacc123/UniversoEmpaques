@@ -95,3 +95,15 @@ una entrada al final de cada sesión (en su propio commit).
   - Al terminar se cierra la sesión y el login avisa que la base se restauró.
   - Usa `backup.ruta-mysql` (el cliente `mysql`), igual que las copias usan `mysqldump`.
 - Prueba `BackupServiceTest`.
+- **Mi cuenta** (`/cuenta`, en el menú de todos y al hacer clic en el nombre de la barra superior):
+  - Todos cambian su contraseña (piden la actual; la nueva con la misma regla del registro y distinta a la actual).
+  - El cliente actualiza correo, celular, teléfono y dirección (NIT, nombre y razón social solo los cambia Comercial). Si cambia el correo, se cierra la sesión y entra con el nuevo.
+  - `CuentaService`, `MiCuentaController`, `CambiarContrasenaForm`, `MisDatosClienteForm`, vista `cuenta.html`. Prueba `CuentaServiceTest`.
+- Logo centrado en login y registro.
+- **Mejoras de interfaz:**
+  - Iconos propios en SVG (`static/img/iconos.svg`, sin depender de internet): menú lateral, tarjetas de los paneles y botones "+".
+  - Barra superior con círculo de iniciales (lleva a Mi cuenta) y botón Salir con icono; barra y menú fijos al hacer scroll.
+  - Tablas con encabezados discretos y resaltado al pasar el mouse; login y registro con fondo de marca.
+  - Registro: ayudas que explican NIT/cédula, nombre comercial y razón social (una cuenta por empresa o persona).
+  - Landing renovada (misma identidad): portada con ejemplo del seguimiento, "Así funciona" en 4 pasos, catálogo real de productos (tabla Producto), beneficios, llamado a la acción y pie de página.
+

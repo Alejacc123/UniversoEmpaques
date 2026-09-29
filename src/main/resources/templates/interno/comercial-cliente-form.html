@@ -36,6 +36,7 @@
                     <input type="text" class="form-control" th:field="*{razonSocial}" maxlength="150"
                            th:classappend="${#fields.hasErrors('razonSocial')} ? 'is-invalid'">
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('razonSocial')}" th:errors="*{razonSocial}"></div>
+                    <div class="form-text">Nombre legal (RUT / Cámara de Comercio). Vacío si es persona natural.</div>
                 </div>
 
                 <div class="mb-2">
