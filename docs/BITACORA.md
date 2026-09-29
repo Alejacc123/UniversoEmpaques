@@ -111,5 +111,5 @@ una entrada al final de cada sesión (en su propio commit).
 - Pruebas automáticas corridas en IntelliJ: **24 de 24 pasan**.
 - Efecto de zoom suave al pasar el mouse por botones, tarjetas del panel, menú lateral y productos de la landing (se desactiva si el sistema pide "reducir movimiento").
 - `admin@universoempaques.com` ya no se crea con datos de prueba y, si existe, se elimina al arrancar (se usa `admin@prueba.com`). Solo se crea en producción (`app.datos-prueba=false`) con la base vacía. README actualizado.
-- Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` solo tenía una copia a mano de lo nuestro: se deja igual a `Development`.
+- Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
 
