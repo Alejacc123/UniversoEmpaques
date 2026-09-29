@@ -233,6 +233,30 @@ a.tarjeta-dato:hover .dato-icono{ background:var(--ue-blue); color:#fff; }
 .pie-publico a{ color:#d6dade; text-decoration:none; }
 .pie-publico a:hover{ color:#fff; }
 
+/* =====================================================================
+   Efecto de zoom en lo que se puede pulsar (botones, tarjetas-enlace,
+   menu, productos de la landing). Suave y corto para no marear.
+   ===================================================================== */
+.btn, a.tarjeta-dato, .sidebar .nav-link, .usuario-nav, .tarjeta-producto, .paso-numero{
+  transition:transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:not(:disabled):not(.disabled):hover{ transform:scale(1.05); }
+.btn:not(:disabled):not(.disabled):active{ transform:scale(.97); }
+.btn-lg:not(:disabled):not(.disabled):hover{ transform:scale(1.04); }
+a.tarjeta-dato:hover{ transform:scale(1.03); }
+.sidebar .nav-link:hover{ transform:scale(1.03); }
+.usuario-nav:hover .avatar{ transform:scale(1.1); }
+.avatar{ transition:transform .15s ease; }
+.tarjeta-producto:hover{ transform:translateY(-3px) scale(1.02); }
+.paso-numero:hover{ transform:scale(1.08); }
+
+/* Quien tenga activado "reducir movimiento" en su sistema no ve el zoom */
+@media (prefers-reduced-motion: reduce){
+  .btn, a.tarjeta-dato, .sidebar .nav-link, .usuario-nav .avatar, .tarjeta-producto, .paso-numero{
+    transition:none; transform:none !important;
+  }
+}
+
 /* ---------- Celular ---------- */
 @media (max-width:767px){
   .layout{ flex-direction:column; min-height:auto; }

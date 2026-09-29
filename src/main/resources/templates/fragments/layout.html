@@ -60,6 +60,7 @@
             <div class="sidebar-titulo">Administración</div>
             <a class="nav-link" th:classappend="${activo == 'admin-panel'} ? 'active'" th:href="@{/admin/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#inicio}"/></svg>Inicio</a>
             <a class="nav-link" th:classappend="${activo == 'admin-usuarios'} ? 'active'" th:href="@{/admin/usuarios}"><svg class="ic"><use th:href="@{/img/iconos.svg#usuarios}"/></svg>Usuarios</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-productos'} ? 'active'" th:href="@{/admin/productos}"><svg class="ic"><use th:href="@{/img/iconos.svg#catalogo}"/></svg>Productos</a>
             <a class="nav-link" th:classappend="${activo == 'admin-reportes'} ? 'active'" th:href="@{/admin/reportes}"><svg class="ic"><use th:href="@{/img/iconos.svg#reportes}"/></svg>Reportes</a>
             <a class="nav-link" th:classappend="${activo == 'admin-respaldos'} ? 'active'" th:href="@{/admin/respaldos}"><svg class="ic"><use th:href="@{/img/iconos.svg#respaldos}"/></svg>Copias de seguridad</a>
         </th:block>

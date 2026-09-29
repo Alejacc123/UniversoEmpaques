@@ -10,6 +10,7 @@ import com.universoempaques.repository.ClienteRepository;
 import com.universoempaques.repository.ProductoRepository;
 import com.universoempaques.repository.RolRepository;
 import com.universoempaques.repository.UsuarioRepository;
+import com.universoempaques.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,10 +25,11 @@ import java.time.LocalDate;
  * inserta lo que falte (si la tabla ya tiene datos, no hace nada):
  *   - Roles: Administrador y Empleado.
  *   - Areas: Comercial, Diseno, Produccion, Bodega.
- *   - Usuario Administrador (con su fila en UsuarioRol).
+ *   - Usuario Administrador inicial, SOLO si la base esta vacia y
+ *     app.datos-prueba=false (con datos de prueba se usa admin@prueba.com).
  *   - 4 productos de ejemplo.
  *
- * Credenciales iniciales:
+ * Credenciales iniciales (solo computador de produccion, sin datos de prueba):
  *   correo:     admin@universoempaques.com
  *   contrasena: admin123
  *
@@ -39,6 +41,10 @@ import java.time.LocalDate;
  * se aseguran de existir y se les restablece la contrasena, para que la
  * lista del README siempre funcione. En el computador de produccion se
  * pone app.datos-prueba=false.
+ *
+ * Ademas, si la base esta recien creada (sin pedidos ni cotizaciones),
+ * DatosDeEjemplo llena clientes, cotizaciones, pedidos y disenos de
+ * ejemplo en todos sus estados.
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -51,6 +57,8 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClienteRepository clienteRepository;
+    private final DatosDeEjemplo datosDeEjemplo;
+    private final UsuarioService usuarioService;
 
     /** Crea/restablece los usuarios de prueba (ver application.properties). */
     @Value("${app.datos-prueba:false}")
@@ -58,15 +66,21 @@ public class DataSeeder implements CommandLineRunner {
 
     public static final String CONTRASENA_PRUEBA = "prueba123";
 
+    /** Administrador inicial, solo para una base vacia SIN datos de prueba (produccion). */
+    static final String CORREO_ADMIN_INICIAL = "admin@universoempaques.com";
+
     public DataSeeder(UsuarioRepository usuarioRepository, RolRepository rolRepository,
                       AreaRepository areaRepository, ProductoRepository productoRepository,
-                      PasswordEncoder passwordEncoder, ClienteRepository clienteRepository) {
+                      PasswordEncoder passwordEncoder, ClienteRepository clienteRepository,
+                      DatosDeEjemplo datosDeEjemplo, UsuarioService usuarioService) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
         this.areaRepository = areaRepository;
         this.productoRepository = productoRepository;
         this.passwordEncoder = passwordEncoder;
         this.clienteRepository = clienteRepository;
+        this.datosDeEjemplo = datosDeEjemplo;
+        this.usuarioService = usuarioService;
     }
 
     @Override
@@ -74,7 +88,9 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         sembrarRoles();
         sembrarAreas();
-        if (usuarioRepository.count() == 0) {
+        // Base vacia y SIN datos de prueba (computador de produccion): se crea
+        // el administrador inicial para poder entrar. Con datos de prueba se usa admin@prueba.com.
+        if (usuarioRepository.count() == 0 && !datosPrueba) {
             sembrarUsuarioAdministrador();
         }
         if (productoRepository.count() == 0) {
@@ -82,6 +98,9 @@ public class DataSeeder implements CommandLineRunner {
         }
         if (datosPrueba) {
             sembrarUsuariosDePrueba();
+            quitarAdministradorInicial();
+            // Clientes, cotizaciones, pedidos, historial y disenos de ejemplo (solo en una base nueva)
+            datosDeEjemplo.sembrarSiHaceFalta();
         }
     }
 
@@ -135,6 +154,22 @@ public class DataSeeder implements CommandLineRunner {
         clienteRepository.save(cliente);
     }
 
+    /**
+     * Con datos de prueba el administrador es admin@prueba.com; la cuenta
+     * inicial admin@universoempaques.com sobra y se elimina (si no tiene
+     * historial a su nombre).
+     */
+    private void quitarAdministradorInicial() {
+        usuarioRepository.findByCorreo(CORREO_ADMIN_INICIAL).ifPresent(admin -> {
+            try {
+                usuarioService.eliminar(admin.getCodigo(), null);
+                System.out.println(" Se eliminó la cuenta " + CORREO_ADMIN_INICIAL + " (se usa admin@prueba.com).");
+            } catch (IllegalArgumentException e) {
+                System.out.println(" No se eliminó " + CORREO_ADMIN_INICIAL + ": " + e.getMessage());
+            }
+        });
+    }
+
     private void sembrarRoles() {
         if (rolRepository.findByNombre(Rol.ADMINISTRADOR).isEmpty()) {
             rolRepository.save(new Rol(Rol.ADMINISTRADOR,
@@ -159,7 +194,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Usuario admin = new Usuario();
         admin.setNombre("Administrador");
-        admin.setCorreo("admin@universoempaques.com");
+        admin.setCorreo(CORREO_ADMIN_INICIAL);
         admin.setContrasena(passwordEncoder.encode("admin123"));
         admin.setFechaIngreso(LocalDate.now());
         admin.asignarRolPrincipal(rolAdmin);   // crea la fila en UsuarioRol
