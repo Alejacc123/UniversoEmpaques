@@ -36,6 +36,7 @@ public class FormulariosAdvice {
         };
         binder.registerCustomEditor(String.class, "contrasena", sinCambios);
         binder.registerCustomEditor(String.class, "confirmarContrasena", sinCambios);
+        binder.registerCustomEditor(String.class, "contrasenaActual", sinCambios);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

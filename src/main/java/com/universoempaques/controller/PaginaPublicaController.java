@@ -2,6 +2,7 @@ package com.universoempaques.controller;
 
 import com.universoempaques.dto.RegistroClienteForm;
 import com.universoempaques.service.ClienteService;
+import com.universoempaques.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,13 +20,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class PaginaPublicaController {
 
     private final ClienteService clienteService;
+    private final PedidoService pedidoService;
 
-    public PaginaPublicaController(ClienteService clienteService) {
+    public PaginaPublicaController(ClienteService clienteService, PedidoService pedidoService) {
         this.clienteService = clienteService;
+        this.pedidoService = pedidoService;
     }
 
+    /** Landing: muestra el catalogo real de productos (tabla Producto). */
     @GetMapping("/")
-    public String inicio() {
+    public String inicio(Model model) {
+        model.addAttribute("productos", pedidoService.listarProductos());
         return "index";
     }
 

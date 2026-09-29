@@ -33,10 +33,15 @@
         <img th:src="@{/img/logo-blanco.png}" alt="Universo Empaques" class="logo-nav">
     </a>
     <div class="d-flex align-items-center gap-2 gap-md-3" sec:authorize="isAuthenticated()">
-        <span class="badge bg-ue" th:text="${#authentication.principal.cargo}">Cargo</span>
-        <span class="text-white small d-none d-md-inline" th:text="${#authentication.principal.nombreParaSaludo}">Nombre</span>
+        <span class="badge bg-ue d-none d-sm-inline" th:text="${#authentication.principal.cargo}">Cargo</span>
+        <a class="usuario-nav" th:href="@{/cuenta}" title="Mi cuenta">
+            <span class="avatar" th:text="${#authentication.principal.iniciales}">UE</span>
+            <span class="small d-none d-md-inline" th:text="${#authentication.principal.nombreParaSaludo}">Nombre</span>
+        </a>
         <form th:action="@{/logout}" method="post" class="mb-0">
-            <button class="btn btn-outline-light btn-sm">Salir</button>
+            <button class="btn btn-salir btn-sm" title="Cerrar sesión">
+                <svg class="ic"><use th:href="@{/img/iconos.svg#salir}"/></svg><span class="d-none d-sm-inline">Salir</span>
+            </button>
         </form>
     </div>
 </nav>
@@ -46,50 +51,55 @@
     <nav class="nav flex-column gap-1">
 
         <th:block sec:authorize="hasRole('CLIENTE')">
-            <a class="nav-link" th:classappend="${activo == 'cliente-panel'} ? 'active'" th:href="@{/cliente/panel}">Mi panel</a>
-            <a class="nav-link" th:classappend="${activo == 'cliente-cotizaciones'} ? 'active'" th:href="@{/cliente/cotizaciones}">Mis cotizaciones</a>
-            <a class="nav-link" th:classappend="${activo == 'cliente-pedidos'} ? 'active'" th:href="@{/cliente/pedidos}">Mis pedidos</a>
+            <a class="nav-link" th:classappend="${activo == 'cliente-panel'} ? 'active'" th:href="@{/cliente/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#inicio}"/></svg>Mi panel</a>
+            <a class="nav-link" th:classappend="${activo == 'cliente-cotizaciones'} ? 'active'" th:href="@{/cliente/cotizaciones}"><svg class="ic"><use th:href="@{/img/iconos.svg#cotizaciones}"/></svg>Mis cotizaciones</a>
+            <a class="nav-link" th:classappend="${activo == 'cliente-pedidos'} ? 'active'" th:href="@{/cliente/pedidos}"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg>Mis pedidos</a>
         </th:block>
 
         <th:block sec:authorize="hasRole('ADMIN')">
             <div class="sidebar-titulo">Administración</div>
-            <a class="nav-link" th:classappend="${activo == 'admin-panel'} ? 'active'" th:href="@{/admin/panel}">Inicio</a>
-            <a class="nav-link" th:classappend="${activo == 'admin-usuarios'} ? 'active'" th:href="@{/admin/usuarios}">Usuarios</a>
-            <a class="nav-link" th:classappend="${activo == 'admin-reportes'} ? 'active'" th:href="@{/admin/reportes}">Reportes</a>
-            <a class="nav-link" th:classappend="${activo == 'admin-respaldos'} ? 'active'" th:href="@{/admin/respaldos}">Copias de seguridad</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-panel'} ? 'active'" th:href="@{/admin/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#inicio}"/></svg>Inicio</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-usuarios'} ? 'active'" th:href="@{/admin/usuarios}"><svg class="ic"><use th:href="@{/img/iconos.svg#usuarios}"/></svg>Usuarios</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-productos'} ? 'active'" th:href="@{/admin/productos}"><svg class="ic"><use th:href="@{/img/iconos.svg#catalogo}"/></svg>Productos</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-reportes'} ? 'active'" th:href="@{/admin/reportes}"><svg class="ic"><use th:href="@{/img/iconos.svg#reportes}"/></svg>Reportes</a>
+            <a class="nav-link" th:classappend="${activo == 'admin-respaldos'} ? 'active'" th:href="@{/admin/respaldos}"><svg class="ic"><use th:href="@{/img/iconos.svg#respaldos}"/></svg>Copias de seguridad</a>
         </th:block>
 
         <th:block sec:authorize="hasAnyRole('ADMIN','COMERCIAL')">
             <div class="sidebar-titulo" sec:authorize="hasRole('ADMIN')">Comercial</div>
-            <a class="nav-link" th:classappend="${activo == 'comercial-panel'} ? 'active'" th:href="@{/comercial/panel}">
+            <a class="nav-link" th:classappend="${activo == 'comercial-panel'} ? 'active'" th:href="@{/comercial/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#inicio}"/></svg>
                 <span sec:authorize="hasRole('ADMIN')">Panel comercial</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
             </a>
-            <a class="nav-link" th:classappend="${activo == 'comercial-clientes'} ? 'active'" th:href="@{/comercial/clientes}">Clientes</a>
-            <a class="nav-link" th:classappend="${activo == 'comercial-cotizaciones'} ? 'active'" th:href="@{/comercial/cotizaciones}">Cotizaciones</a>
-            <a class="nav-link" th:classappend="${activo == 'comercial-pedidos'} ? 'active'" th:href="@{/comercial/pedidos}">Pedidos</a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-clientes'} ? 'active'" th:href="@{/comercial/clientes}"><svg class="ic"><use th:href="@{/img/iconos.svg#clientes}"/></svg>Clientes</a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-cotizaciones'} ? 'active'" th:href="@{/comercial/cotizaciones}"><svg class="ic"><use th:href="@{/img/iconos.svg#cotizaciones}"/></svg>Cotizaciones</a>
+            <a class="nav-link" th:classappend="${activo == 'comercial-pedidos'} ? 'active'" th:href="@{/comercial/pedidos}"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg>Pedidos</a>
         </th:block>
 
         <th:block sec:authorize="hasRole('ADMIN')">
             <div class="sidebar-titulo">Otras áreas</div>
         </th:block>
         <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','DISENO')"
-           th:classappend="${activo == 'diseno-panel'} ? 'active'" th:href="@{/diseno/panel}">
+           th:classappend="${activo == 'diseno-panel'} ? 'active'" th:href="@{/diseno/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#diseno}"/></svg>
             <span sec:authorize="hasRole('ADMIN')">Diseño</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
         </a>
         <a class="nav-link" sec:authorize="hasRole('DISENO')"
-           th:classappend="${activo == 'diseno-pedidos'} ? 'active'" th:href="@{/diseno/pedidos}">Pedidos</a>
+           th:classappend="${activo == 'diseno-pedidos'} ? 'active'" th:href="@{/diseno/pedidos}"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg>Pedidos</a>
         <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','PRODUCCION')"
-           th:classappend="${activo == 'produccion-panel'} ? 'active'" th:href="@{/produccion/panel}">
+           th:classappend="${activo == 'produccion-panel'} ? 'active'" th:href="@{/produccion/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#produccion}"/></svg>
             <span sec:authorize="hasRole('ADMIN')">Producción</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
         </a>
         <a class="nav-link" sec:authorize="hasRole('PRODUCCION')"
-           th:classappend="${activo == 'produccion-pedidos'} ? 'active'" th:href="@{/produccion/pedidos}">Pedidos</a>
+           th:classappend="${activo == 'produccion-pedidos'} ? 'active'" th:href="@{/produccion/pedidos}"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg>Pedidos</a>
         <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','BODEGA')"
-           th:classappend="${activo == 'bodega-panel'} ? 'active'" th:href="@{/bodega/panel}">
+           th:classappend="${activo == 'bodega-panel'} ? 'active'" th:href="@{/bodega/panel}"><svg class="ic"><use th:href="@{/img/iconos.svg#bodega}"/></svg>
             <span sec:authorize="hasRole('ADMIN')">Bodega</span><span sec:authorize="!hasRole('ADMIN')">Inicio</span>
         </a>
         <a class="nav-link" sec:authorize="hasRole('BODEGA')"
-           th:classappend="${activo == 'bodega-pedidos'} ? 'active'" th:href="@{/bodega/pedidos}">Pedidos</a>
+           th:classappend="${activo == 'bodega-pedidos'} ? 'active'" th:href="@{/bodega/pedidos}"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg>Pedidos</a>
+
+        <!-- Para todos: cambiar contrasena (y el cliente, sus datos de contacto) -->
+        <div class="sidebar-titulo">Cuenta</div>
+        <a class="nav-link" th:classappend="${activo == 'mi-cuenta'} ? 'active'" th:href="@{/cuenta}"><svg class="ic"><use th:href="@{/img/iconos.svg#cuenta}"/></svg>Mi cuenta</a>
     </nav>
 </aside>
 

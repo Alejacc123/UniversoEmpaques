@@ -95,3 +95,21 @@ una entrada al final de cada sesión (en su propio commit).
   - Al terminar se cierra la sesión y el login avisa que la base se restauró.
   - Usa `backup.ruta-mysql` (el cliente `mysql`), igual que las copias usan `mysqldump`.
 - Prueba `BackupServiceTest`.
+- **Mi cuenta** (`/cuenta`, en el menú de todos y al hacer clic en el nombre de la barra superior):
+  - Todos cambian su contraseña (piden la actual; la nueva con la misma regla del registro y distinta a la actual).
+  - El cliente actualiza correo, celular, teléfono y dirección (NIT, nombre y razón social solo los cambia Comercial). Si cambia el correo, se cierra la sesión y entra con el nuevo.
+  - `CuentaService`, `MiCuentaController`, `CambiarContrasenaForm`, `MisDatosClienteForm`, vista `cuenta.html`. Prueba `CuentaServiceTest`.
+- Logo centrado en login y registro.
+- **Mejoras de interfaz:**
+  - Iconos propios en SVG (`static/img/iconos.svg`, sin depender de internet): menú lateral, tarjetas de los paneles y botones "+".
+  - Barra superior con círculo de iniciales (lleva a Mi cuenta) y botón Salir con icono; barra y menú fijos al hacer scroll.
+  - Tablas con encabezados discretos y resaltado al pasar el mouse; login y registro con fondo de marca.
+  - Registro: ayudas que explican NIT/cédula, nombre comercial y razón social (una cuenta por empresa o persona).
+  - Landing renovada (misma identidad): portada con ejemplo del seguimiento, "Así funciona" en 4 pasos, catálogo real de productos (tabla Producto), beneficios, llamado a la acción y pie de página.
+- **Datos de ejemplo** (`config/DatosDeEjemplo.java`, lo llama `DataSeeder` si `app.datos-prueba=true` y la base no tiene pedidos ni cotizaciones): 4 clientes más (uno inactivo), 2 productos más, cotizaciones en los 4 estados, 7 pedidos en los 6 estados con historial de las últimas semanas y diseños en sus 3 estados (imágenes PNG generadas). Lista en el README.
+- **Catálogo de productos** (Administración → Productos, `/admin/productos`): agregar, editar y eliminar productos (nombre, material, forma, tamaño "30x20x15 cm" y precio en pesos sin puntos). Un producto usado en pedidos no se elimina (se muestra "En uso"); al cambiar el precio los pedidos anteriores conservan el suyo. `ProductoService`, `AdminProductoController`, `ProductoForm`, 2 vistas. Prueba `ProductoServiceTest`.
+- Pruebas automáticas corridas en IntelliJ: **24 de 24 pasan**.
+- Efecto de zoom suave al pasar el mouse por botones, tarjetas del panel, menú lateral y productos de la landing (se desactiva si el sistema pide "reducir movimiento").
+- `admin@universoempaques.com` ya no se crea con datos de prueba y, si existe, se elimina al arrancar (se usa `admin@prueba.com`). Solo se crea en producción (`app.datos-prueba=false`) con la base vacía. README actualizado.
+- Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
+

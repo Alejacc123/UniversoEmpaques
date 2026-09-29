@@ -77,10 +77,12 @@ mvn spring-boot:run
 
 La primera vez que arranca (con la base ya creada por `schema.sql`), la aplicación:
 1. Inserta los roles, las áreas y 4 productos de ejemplo.
-2. Crea automáticamente un usuario **Administrador** con:
-   - Correo: `admin@universoempaques.com`
-   - Contraseña: `admin123`
-   (verán este mensaje impreso en la consola). **Cámbienla luego.**
+2. Con `app.datos-prueba=true` (lo normal para desarrollar y para la demo) crea los
+   usuarios de prueba de la sección 4 y los datos de ejemplo; el administrador es
+   `admin@prueba.com` / `prueba123`.
+3. Solo en el computador de producción (`app.datos-prueba=false`) y con la base vacía,
+   crea el administrador inicial `admin@universoempaques.com` / `admin123`
+   (sale en la consola). **Cámbienla luego** desde "Mi cuenta".
 
 Abran el navegador en **http://localhost:8080**
 
@@ -102,13 +104,31 @@ Si cambian la contraseña de alguno desde la app, al reiniciar vuelve a
 `prueba123`. En el computador de producción pongan `app.datos-prueba=false`
 en su `application-local.properties`.
 
+### Datos de ejemplo
+
+Si la base está **recién creada** (acaban de correr `schema.sql`), al arrancar
+también se llenan datos de ejemplo para no tener que crearlos a mano:
+
+- **Clientes extra** (contraseña `prueba123`): `espiga@prueba.com` (Panadería La Espiga),
+  `cafe@prueba.com` (Café Montaña Azul), `laura@prueba.com` (persona natural) e
+  `inactivo@prueba.com` (cuenta INACTIVA: sirve para ver que no puede entrar).
+- **Productos**: los 4 del catálogo + "Caja para pizza" y "Bolsa de papel para pan".
+- **Cotizaciones** en los 4 estados: solicitada, cotizada (esperando al cliente),
+  aprobada sin pedido y rechazada, más una aprobada que ya generó su pedido.
+- **Pedidos** en los 6 estados (solicitado, en diseño, en producción, terminado,
+  despachado y entregado), con historial, fechas de las últimas semanas (para los
+  reportes) y diseños pendientes, aprobados y con ajuste solicitado.
+
+Si la base ya tiene pedidos o cotizaciones no se agrega nada. Para volver a
+tenerlos: corran `schema.sql` otra vez y reinicien la app.
+
 ## 4.1 Qué pueden probar ya mismo
 
 - Entrar a `/` → página de inicio pública.
 - Clic en "Registrarme" → crear una cuenta de cliente (RF-02) y quedar
   con acceso inmediato.
 - Clic en "Iniciar sesión" → entrar como cliente recién creado, o como
-  `admin@universoempaques.com` / `admin123` → cada uno debe llegar a un
+  `admin@prueba.com` / `prueba123` → cada uno debe llegar a un
   panel distinto automáticamente (RF-01, RF-04).
 - Si un cliente intenta entrar a una URL interna (ej. `/admin/panel`),
   Spring Security debe bloquearlo (RNF-03).

@@ -107,6 +107,19 @@ public class AppUserPrincipal implements UserDetails {
         return nombre;
     }
 
+    /** Iniciales para el circulo de la barra superior: "Comercial Prueba" -> "CP". */
+    public String getIniciales() {
+        if (nombre == null || nombre.isBlank()) return "?";
+        StringBuilder iniciales = new StringBuilder();
+        for (String palabra : nombre.trim().split("\\s+")) {
+            if (!palabra.isEmpty() && Character.isLetterOrDigit(palabra.charAt(0))) {
+                iniciales.append(Character.toUpperCase(palabra.charAt(0)));
+            }
+            if (iniciales.length() == 2) break;
+        }
+        return iniciales.length() == 0 ? "?" : iniciales.toString();
+    }
+
     /** Texto del cargo para la barra superior: "Administrador", "Comercial", "Diseño"... */
     public String getCargo() {
         if (cliente != null) return "Cliente";

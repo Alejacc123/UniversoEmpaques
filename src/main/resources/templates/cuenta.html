@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mi cuenta')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('mi-cuenta')}"></aside>
+
+    <main class="contenido">
+        <h4 class="mb-3">Mi cuenta</h4>
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+
+        <div class="row g-3">
+            <!-- ============ Datos de la cuenta ============ -->
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h6 class="mb-3">Mis datos</h6>
+
+                    <!-- Trabajador: solo lectura (los cambia el administrador) -->
+                    <th:block th:unless="${esCliente}">
+                        <dl class="row small mb-0">
+                            <dt class="col-4">Nombre</dt>
+                            <dd class="col-8" th:text="${#authentication.principal.nombreParaSaludo}">-</dd>
+                            <dt class="col-4">Correo</dt>
+                            <dd class="col-8 text-break" th:text="${#authentication.principal.username}">-</dd>
+                            <dt class="col-4">Cargo</dt>
+                            <dd class="col-8" th:text="${#authentication.principal.cargo}">-</dd>
+                        </dl>
+                        <p class="small text-muted mt-3 mb-0">
+                            Si alguno de estos datos está mal, pídele al administrador que lo corrija.
+                        </p>
+                    </th:block>
+
+                    <!-- Cliente: datos de contacto editables -->
+                    <th:block th:if="${esCliente}">
+                        <dl class="row small mb-3">
+                            <dt class="col-4">NIT</dt>
+                            <dd class="col-8" th:text="${cliente.nit}">-</dd>
+                            <dt class="col-4">Empresa</dt>
+                            <dd class="col-8" th:text="${cliente.nombre}">-</dd>
+                            <th:block th:if="${cliente.razonSocial != null}">
+                                <dt class="col-4">Razón social</dt>
+                                <dd class="col-8" th:text="${cliente.razonSocial}">-</dd>
+                            </th:block>
+                        </dl>
+
+                        <div th:if="${errorDatos}" class="alert alert-danger py-2 small" th:text="${errorDatos}"></div>
+
+                        <form th:action="@{/cuenta/datos}" th:object="${misDatosClienteForm}" method="post" novalidate>
+                            <div class="mb-2">
+                                <label class="form-label small" for="correo">Correo electrónico</label>
+                                <input type="email" id="correo" class="form-control" th:field="*{correo}" maxlength="100" autocomplete="email"
+                                       th:classappend="${#fields.hasErrors('correo')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
+                                <div class="form-text">Es el correo con el que inicias sesión. Si lo cambias, tendrás que entrar de nuevo.</div>
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-sm-6">
+                                    <label class="form-label small" for="celular">Celular</label>
+                                    <input type="tel" id="celular" class="form-control" th:field="*{celular}" maxlength="16"
+                                           placeholder="3001234567" autocomplete="tel"
+                                           th:classappend="${#fields.hasErrors('celular')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('celular')}" th:errors="*{celular}"></div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small" for="telefono">Otro teléfono <span class="text-muted">(opcional)</span></label>
+                                    <input type="tel" id="telefono" class="form-control" th:field="*{telefono}" maxlength="16"
+                                           placeholder="6076851234"
+                                           th:classappend="${#fields.hasErrors('telefono')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small" for="direccion">Dirección</label>
+                                <input type="text" id="direccion" class="form-control" th:field="*{direccion}" maxlength="200"
+                                       autocomplete="street-address"
+                                       th:classappend="${#fields.hasErrors('direccion')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></div>
+                            </div>
+                            <button class="btn btn-ue">Guardar datos</button>
+                        </form>
+                        <p class="small text-muted mt-3 mb-0">El NIT y el nombre de la empresa solo los cambia Universo Empaques.</p>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- ============ Cambiar contrasena (todos) ============ -->
+            <div class="col-lg-6">
+                <div class="card p-4 h-100">
+                    <h6 class="mb-3">Cambiar contraseña</h6>
+
+                    <div th:if="${errorContrasena}" class="alert alert-danger py-2 small" th:text="${errorContrasena}"></div>
+
+                    <form th:action="@{/cuenta/contrasena}" th:object="${cambiarContrasenaForm}" method="post" novalidate>
+                        <div class="mb-2">
+                            <label class="form-label small" for="contrasenaActual">Contraseña actual</label>
+                            <input type="password" id="contrasenaActual" class="form-control" th:field="*{contrasenaActual}"
+                                   maxlength="64" autocomplete="current-password"
+                                   th:classappend="${#fields.hasErrors('contrasenaActual')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contrasenaActual')}" th:errors="*{contrasenaActual}"></div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small" for="contrasena">Contraseña nueva</label>
+                            <input type="password" id="contrasena" class="form-control" th:field="*{contrasena}"
+                                   maxlength="64" autocomplete="new-password"
+                                   th:classappend="${#fields.hasErrors('contrasena')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contrasena')}" th:errors="*{contrasena}"></div>
+                            <div class="form-text">Mínimo 8 caracteres, con al menos una letra y un número.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small" for="confirmarContrasena">Repite la contraseña nueva</label>
+                            <input type="password" id="confirmarContrasena" class="form-control" th:field="*{confirmarContrasena}"
+                                   maxlength="64" autocomplete="new-password"
+                                   th:classappend="${#fields.hasErrors('confirmarContrasena')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmarContrasena')}" th:errors="*{confirmarContrasena}"></div>
+                        </div>
+                        <button class="btn btn-ue">Cambiar contraseña</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

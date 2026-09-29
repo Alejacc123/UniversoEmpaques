@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Productos')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('admin-productos')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+            <h4 class="mb-0">Catálogo de productos</h4>
+            <a class="btn btn-ue btn-sm" th:href="@{/admin/productos/nuevo}"><svg class="ic"><use th:href="@{/img/iconos.svg#mas}"/></svg>Agregar producto</a>
+        </div>
+        <p class="text-muted small mb-3">
+            Estos productos aparecen en la página de inicio y al registrar pedidos. Si cambias un precio,
+            los pedidos ya registrados conservan el precio con el que se hicieron.
+        </p>
+
+        <input type="search" class="form-control form-control-sm buscador" data-filtro-tabla="tablaProductos"
+               placeholder="Buscar por nombre, material, forma...">
+
+        <div class="card p-3 table-responsive">
+            <table id="tablaProductos" class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                <tr><th>Producto</th><th>Material</th><th>Forma</th><th>Tamaño</th><th class="text-end">Precio c/u</th><th class="text-center">Veces pedido</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${productos}">
+                    <td class="fw-semibold" th:text="${p.nombre}">Producto</td>
+                    <td th:text="${p.material}">Material</td>
+                    <td th:text="${p.forma ?: '—'}">Forma</td>
+                    <td th:text="${p.tamano ?: '—'}">Tamaño</td>
+                    <td class="text-end text-nowrap"
+                        th:text="${p.precio != null} ? '$' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 0, 'COMMA')} : '—'">$0</td>
+                    <td class="text-center" th:text="${usos[p.codigo]}">0</td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-ue" th:href="@{/admin/productos/{id}/editar(id=${p.codigo})}">Editar</a>
+                        <form th:if="${usos[p.codigo] == 0}" th:action="@{/admin/productos/{id}/eliminar(id=${p.codigo})}"
+                              method="post" class="d-inline" th:data-nombre="${p.nombre}"
+                              onsubmit="return confirm('¿Eliminar ' + this.dataset.nombre + ' del catálogo?');">
+                            <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+                        <span th:if="${usos[p.codigo] gt 0}" class="text-muted small ms-1"
+                              title="Ya se usó en pedidos: no se puede eliminar para no perder el historial">En uso</span>
+                    </td>
+                </tr>
+                <tr data-sin-datos th:if="${#lists.isEmpty(productos)}">
+                    <td colspan="7" class="text-muted text-center py-3">El catálogo está vacío. Agrega el primer producto.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/filtro-tabla.js}"></script>
+</body>
+</html>

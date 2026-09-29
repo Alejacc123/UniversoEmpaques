@@ -16,7 +16,7 @@
         <div class="row g-3 mb-4">
             <div class="col-12 col-sm-6 col-lg-4">
                 <a class="card tarjeta-dato p-3 h-100 text-decoration-none text-reset" th:href="@{/produccion/pedidos}">
-                    <div class="text-muted small">Pedidos en producción</div>
+                    <div class="dato-cabecera"><span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#produccion}"/></svg></span><span class="text-muted small">Pedidos en producción</span></div>
                     <div class="fs-3 fw-bold" th:text="${enCola}">0</div>
                     <div class="small text-muted">Ver la cola de trabajo</div>
                 </a>

@@ -16,28 +16,28 @@
         <div class="row g-3 mb-4">
             <div class="col-6 col-lg-3">
                 <a class="card tarjeta-dato p-3 h-100 text-decoration-none text-reset" th:href="@{/comercial/cotizaciones?estado=SOLICITADA}">
-                <div class="text-muted small">Cotizaciones por cotizar</div>
+                <div class="dato-cabecera"><span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#valor}"/></svg></span><span class="text-muted small">Cotizaciones por cotizar</span></div>
                 <div class="fs-3 fw-bold" th:text="${porCotizar}">0</div>
                 <div class="small text-muted">Esperan que les pongas valor</div>
                 </a>
             </div>
             <div class="col-6 col-lg-3">
                 <a class="card tarjeta-dato p-3 h-100 text-decoration-none text-reset" th:href="@{/comercial/cotizaciones?estado=APROBADA}">
-                <div class="text-muted small">Aprobadas sin pedido</div>
+                <div class="dato-cabecera"><span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#check}"/></svg></span><span class="text-muted small">Aprobadas sin pedido</span></div>
                 <div class="fs-3 fw-bold" th:text="${aprobadasSinPedido}">0</div>
                 <div class="small text-muted">Genera su pedido</div>
                 </a>
             </div>
             <div class="col-6 col-lg-3">
                 <a class="card tarjeta-dato p-3 h-100 text-decoration-none text-reset" th:href="@{/comercial/cotizaciones?estado=COTIZADA}">
-                <div class="text-muted small">Esperando al cliente</div>
+                <div class="dato-cabecera"><span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#reloj}"/></svg></span><span class="text-muted small">Esperando al cliente</span></div>
                 <div class="fs-3 fw-bold" th:text="${esperandoCliente}">0</div>
                 <div class="small text-muted">Ya tienen valor</div>
                 </a>
             </div>
             <div class="col-6 col-lg-3">
                 <a class="card tarjeta-dato p-3 h-100 text-decoration-none text-reset" th:href="@{/comercial/pedidos}">
-                <div class="text-muted small">Pedidos por enviar a diseño</div>
+                <div class="dato-cabecera"><span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#enviar}"/></svg></span><span class="text-muted small">Pedidos por enviar a diseño</span></div>
                 <div class="fs-3 fw-bold" th:text="${porEnviarADiseno}">0</div>
                 <div class="small text-muted" th:text="'De ' + ${totalPedidos} + ' pedidos en total'">-</div>
                 </a>
@@ -45,7 +45,7 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-            <a class="btn btn-ue btn-sm" th:href="@{/comercial/pedidos/nuevo}">+ Registrar pedido directo</a>
+            <a class="btn btn-ue btn-sm" th:href="@{/comercial/pedidos/nuevo}"><svg class="ic"><use th:href="@{/img/iconos.svg#mas}"/></svg>Registrar pedido directo</a>
             <a class="btn btn-outline-ue btn-sm" th:href="@{/comercial/clientes}"
                th:text="'Clientes (' + ${totalClientes} + ')'">Clientes</a>
         </div>
