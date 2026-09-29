@@ -34,6 +34,9 @@
     <div th:if="${param.logout}" class="alert alert-info py-2 small">
       Sesión cerrada correctamente.
     </div>
+    <div th:if="${param.restaurado}" class="alert alert-success py-2 small">
+      La base de datos se restauró desde la copia elegida. Inicia sesión de nuevo.
+    </div>
 
     <form th:action="@{/login}" method="post">
       <div class="mb-3">
