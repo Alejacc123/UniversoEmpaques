@@ -113,3 +113,4 @@ una entrada al final de cada sesión (en su propio commit).
 - `admin@universoempaques.com` ya no se crea con datos de prueba y, si existe, se elimina al arrancar (se usa `admin@prueba.com`). Solo se crea en producción (`app.datos-prueba=false`) con la base vacía. README actualizado.
 - Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
 
+- Landing adaptada al celular: portada, pasos, productos, beneficios y llamado a la acción centrados; botones a lo ancho y barra superior en una sola línea.
