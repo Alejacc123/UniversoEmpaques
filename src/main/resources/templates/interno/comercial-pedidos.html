@@ -12,13 +12,13 @@
         <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h4 class="mb-0">Pedidos</h4>
-            <a class="btn btn-ue btn-sm" th:href="@{/comercial/pedidos/nuevo}">+ Registrar pedido</a>
+            <a class="btn btn-ue btn-sm" th:href="@{/comercial/pedidos/nuevo}"><svg class="ic"><use th:href="@{/img/iconos.svg#mas}"/></svg>Registrar pedido</a>
         </div>
 
         <input type="search" class="form-control form-control-sm buscador" data-filtro-tabla="tablaPedidos" placeholder="Buscar por número o cliente...">
 
         <div class="card p-3 table-responsive">
-            <table id="tablaPedidos" class="table table-sm align-middle mb-0">
+            <table id="tablaPedidos" class="table table-sm table-hover align-middle mb-0">
                 <thead class="text-muted small">
                 <tr><th>N.º</th><th>Cliente</th><th>Registrado</th><th>Entrega</th><th>Estado actual</th><th></th></tr>
                 </thead>

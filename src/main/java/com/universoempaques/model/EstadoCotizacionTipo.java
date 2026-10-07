@@ -4,12 +4,15 @@ package com.universoempaques.model;
  * Estados de una cotizacion (columna "Estado" de la tabla Cotizacion).
  * Flujo (RF-06 a RF-10):
  *   SOLICITADA -> (comercial pone el valor) -> COTIZADA
- *   COTIZADA   -> (cliente responde)        -> APROBADA o RECHAZADA
+ *   COTIZADA   -> (cliente responde)        -> APROBADA, RECHAZADA o CONTRAOFERTA
+ *   CONTRAOFERTA -> (comercial)  acepta el valor propuesto -> APROBADA
+ *                                o pone un valor nuevo     -> COTIZADA
  *   APROBADA   -> (comercial genera el pedido; queda enlazado en CodigoPedido)
  */
 public enum EstadoCotizacionTipo {
     SOLICITADA("Solicitada", "status-cotizado"),
     COTIZADA("Cotizada", "status-produccion"),
+    CONTRAOFERTA("Contraoferta del cliente", "status-despachado"),
     APROBADA("Aprobada", "status-terminado"),
     RECHAZADA("Rechazada", "status-rechazado");
 

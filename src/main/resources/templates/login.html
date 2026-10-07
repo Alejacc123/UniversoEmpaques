@@ -12,8 +12,8 @@
 </head>
 <body>
 
-<div class="d-flex align-items-center justify-content-center px-3" style="min-height:100vh;">
-  <div class="card shadow-sm p-4" style="width:100%; max-width:400px;">
+<div class="pagina-acceso d-flex align-items-center justify-content-center">
+  <div class="card tarjeta-acceso p-4" style="width:100%; max-width:400px;">
 
     <div class="text-center mb-3">
       <a th:href="@{/}"><img th:src="@{/img/logo-negro.png}" alt="Universo Empaques" class="logo-card"></a>
@@ -33,6 +33,12 @@
     </div>
     <div th:if="${param.logout}" class="alert alert-info py-2 small">
       Sesión cerrada correctamente.
+    </div>
+    <div th:if="${param.correoActualizado}" class="alert alert-success py-2 small">
+      Tu correo se actualizó. Inicia sesión con el correo nuevo.
+    </div>
+    <div th:if="${param.restaurado}" class="alert alert-success py-2 small">
+      La base de datos se restauró desde la copia elegida. Inicia sesión de nuevo.
     </div>
 
     <form th:action="@{/login}" method="post">

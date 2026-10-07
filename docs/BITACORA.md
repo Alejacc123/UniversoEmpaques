@@ -14,11 +14,11 @@ una entrada al final de cada sesión (en su propio commit).
 | RF-06 a RF-09 | Cotizaciones: cliente solicita, comercial pone valor, cliente aprueba/rechaza, ambos consultan | Hecho |
 | RF-10 | Solicitar pedido | Hecho: desde una cotización aprobada (lo genera Comercial) o directo por el cliente desde "Mis pedidos" con productos del catálogo |
 | RF-11 | Pedido directo con detalle y estado inicial | Hecho (guarda PrecioUnitario) |
-| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 64 KB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
+| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 5 MB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
 | RF-14 / RF-15 / RF-17 | Estado del pedido, consulta y despacho | Hecho: flujo SOLICITADO → EN_DISEÑO → EN_PRODUCCIÓN → TERMINADO → DESPACHADO → ENTREGADO; cola de trabajo por área; el cliente ve el avance en "Mis pedidos" |
 | RF-16 | Notificaciones por correo (Observer) | Hecho: `EstadoPedidoCambiadoEvent` + `NotificacionService` (asíncrono). Sin correo configurado, deja el aviso en el log |
 | RF-18 | Reportes | Hecho: pantalla del admin con rango de fechas: pedidos por estado, valor, cotizaciones y tasa de aprobación, tiempo promedio por etapa y hasta la entrega, productos más pedidos; descarga CSV para Excel |
-| RF-19 | Copia de seguridad | Hecho (mensual.sql = copia TOTAL que se entrega al ente externo; se sobrescribe): `BackupService` (Amelie) + pantalla del admin: copia total manual (reemplaza mensual.sql), configuración de la copia automática (encendida, hora, segunda carpeta) sin reiniciar, estado y descarga. Falta restaurar desde la app |
+| RF-19 | Copia de seguridad | Hecho (mensual.sql = copia TOTAL que se entrega al ente externo; se sobrescribe): `BackupService` (Amelie) + pantalla del admin: copia total manual (reemplaza mensual.sql), configuración de la copia automática (encendida, hora, segunda carpeta) sin reiniciar, estado, descarga y **restaurar** (con punto de deshacer `antes-de-restaurar.sql`) |
 
 ## Decisiones tomadas
 
@@ -29,17 +29,18 @@ una entrada al final de cada sesión (en su propio commit).
 - Configuración por computador en `application-local.properties` (ignorado por Git; plantilla en `application-local.properties.example`). `application.properties` es compartido y no lleva contraseñas ni rutas personales.
 - `.gitattributes` unifica finales de línea (LF) entre Mac y Windows.
 - Respaldos (RF-19) apagados por defecto; se activan solo en el computador servidor.
-- Ramas: una por integrante (`Nombre-Area`), Pull Request hacia `main`, Alejandra hace el merge.
+- Ramas: una por integrante (`Nombre-Area`). Pull Request hacia **`Development`**; ahí se prueba y Alejandra pasa `Development` → `main`.
 
 ## Preguntas pendientes para Amelie
 
 1. `Usuario.NombreEmpresa` y `Cliente.NombreEmpresa`: el diccionario dice `Nombre`.
 2. `Pedido.FechaRegistroTecnicas`: el diccionario dice `FechaRegistro`.
 3. ~~`Cliente.Telefono` y `Usuario.TelefonoEmpresa` son INT~~ → **ya se cambiaron a VARCHAR(20)** en `schema.sql` (no cabía un celular de 10 dígitos). Amelie debe actualizar el diccionario de datos.
-4. `Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB): la app ya valida ese límite, pero es poco para un diseño real. Sugerencia: MEDIUMBLOB (16 MB).
+4. ~~`Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB)~~ → **ya se cambiaron a MEDIUMBLOB** en `schema.sql` (la app acepta hasta 5 MB). Amelie debe actualizar el diccionario de datos.
 7. `Diseno.CodigoUsuario` es uno solo: se guarda quien REVISÓ (como dice el diccionario); se pierde quién lo subió. ¿Agregar `CodigoUsuarioDisenador`?
 5. `Cotizacion.CodigoPedido`: se usa así: la cotización nace sin pedido (NULL) y, al aprobarse, el comercial genera el pedido y se llena CodigoPedido. Confirmar con Amelie.
 6. `Diseno` cuelga de `DetallePedido` (no de `Pedido`): confirmar que es intencional.
+8. **Nuevas columnas en `Cotizacion`** (`ValorContraoferta`, `Observaciones`, `FotoReferencia` MEDIUMBLOB) por las correcciones de la Product Owner: Amelie debe agregarlas al diccionario de datos.
 
 ## Registro de sesiones
 
@@ -86,3 +87,46 @@ una entrada al final de cada sesión (en su propio commit).
 - RF-18: `ReporteService` + `AdminReporteController` + `admin-reportes.html`. Prueba `ReporteServiceTest`.
 - RF-10: el cliente solicita un pedido directo ("Mis pedidos" → "+ Solicitar pedido"). Queda SOLICITADO sin comercial (`CodigoUsuario` NULL, marcado "Web"); quien lo envía a diseño queda a cargo.
 - Copias: `mensual.sql` se presenta como la copia **Total** (la que se entrega al ente externo); no se guarda histórico.
+
+### 2026-09-29 — Juan Gamboa (Backend)
+- PR #1 (`Gamboa-Backend` → `main`) fusionado. Desde ahora los PR van a `Development`.
+- RF-19 completo: **restaurar la base desde la app** (Administración → Copias de seguridad → "Restaurar la base de datos").
+  - Se elige la copia (total, semanal, el estado de un día = semanal + parcial, o deshacer) y se confirma escribiendo RESTAURAR.
+  - Antes de restaurar se guarda el estado actual en `antes-de-restaurar.sql` (aparece en la lista para deshacer).
+  - Al terminar se cierra la sesión y el login avisa que la base se restauró.
+  - Usa `backup.ruta-mysql` (el cliente `mysql`), igual que las copias usan `mysqldump`.
+- Prueba `BackupServiceTest`.
+- **Mi cuenta** (`/cuenta`, en el menú de todos y al hacer clic en el nombre de la barra superior):
+  - Todos cambian su contraseña (piden la actual; la nueva con la misma regla del registro y distinta a la actual).
+  - El cliente actualiza correo, celular, teléfono y dirección (NIT, nombre y razón social solo los cambia Comercial). Si cambia el correo, se cierra la sesión y entra con el nuevo.
+  - `CuentaService`, `MiCuentaController`, `CambiarContrasenaForm`, `MisDatosClienteForm`, vista `cuenta.html`. Prueba `CuentaServiceTest`.
+- Logo centrado en login y registro.
+- **Mejoras de interfaz:**
+  - Iconos propios en SVG (`static/img/iconos.svg`, sin depender de internet): menú lateral, tarjetas de los paneles y botones "+".
+  - Barra superior con círculo de iniciales (lleva a Mi cuenta) y botón Salir con icono; barra y menú fijos al hacer scroll.
+  - Tablas con encabezados discretos y resaltado al pasar el mouse; login y registro con fondo de marca.
+  - Registro: ayudas que explican NIT/cédula, nombre comercial y razón social (una cuenta por empresa o persona).
+  - Landing renovada (misma identidad): portada con ejemplo del seguimiento, "Así funciona" en 4 pasos, catálogo real de productos (tabla Producto), beneficios, llamado a la acción y pie de página.
+- **Datos de ejemplo** (`config/DatosDeEjemplo.java`, lo llama `DataSeeder` si `app.datos-prueba=true` y la base no tiene pedidos ni cotizaciones): 4 clientes más (uno inactivo), 2 productos más, cotizaciones en los 4 estados, 7 pedidos en los 6 estados con historial de las últimas semanas y diseños en sus 3 estados (imágenes PNG generadas). Lista en el README.
+- **Catálogo de productos** (Administración → Productos, `/admin/productos`): agregar, editar y eliminar productos (nombre, material, forma, tamaño "30x20x15 cm" y precio en pesos sin puntos). Un producto usado en pedidos no se elimina (se muestra "En uso"); al cambiar el precio los pedidos anteriores conservan el suyo. `ProductoService`, `AdminProductoController`, `ProductoForm`, 2 vistas. Prueba `ProductoServiceTest`.
+- Pruebas automáticas corridas en IntelliJ: **24 de 24 pasan**.
+- Efecto de zoom suave al pasar el mouse por botones, tarjetas del panel, menú lateral y productos de la landing (se desactiva si el sistema pide "reducir movimiento").
+- `admin@universoempaques.com` ya no se crea con datos de prueba y, si existe, se elimina al arrancar (se usa `admin@prueba.com`). Solo se crea en producción (`app.datos-prueba=false`) con la base vacía. README actualizado.
+- Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
+
+- Landing adaptada al celular: portada, pasos, productos, beneficios y llamado a la acción centrados; botones a lo ancho y barra superior en una sola línea.
+
+### 2026-10-06 — Juan Gamboa (Backend) — correcciones de la Product Owner
+- Mi cuenta: el texto ahora dice «solo los puede cambiar Universo Empaques».
+- Cotización: el cliente puede subir una **foto de referencia** opcional (JPG/PNG hasta 5 MB, se valida la firma del archivo); Comercial y el cliente la ven en el detalle.
+- Cotización: las **medidas** son 3 campos numéricos en cm (largo, ancho, alto opcional) y se guardan como «30x20x15 cm».
+- **Contraoferta:** con la cotización «Cotizada», el cliente puede aprobar o rechazar dejando observaciones, o proponer otro valor (estado nuevo `CONTRAOFERTA`). Comercial acepta la contraoferta (queda aprobada con ese valor) o responde con un valor nuevo (vuelve a «Cotizada»). El panel de Comercial cuenta las contraofertas como «por cotizar».
+- `schema.sql`: 3 columnas nuevas en Cotizacion (cambio 4). **Hay que volver a crear la base** (o hacer ALTER TABLE).
+- Copias de seguridad: se quitó de la ayuda la mención a `configuracion.properties`.
+- N.º de documento: **exactamente 10 dígitos**.
+- Horas trabajadas: máximo 99.999.999,99 (el límite de la columna DECIMAL(10,2)).
+- Datos de ejemplo: una cotización en contraoferta (Panadería La Espiga). Pruebas nuevas en `CotizacionServiceTest` y `DatosColombiaTest`.
+- RF-16 ya estaba implementado (Observer + `NotificacionService`, 28/09); solo falta configurar el correo real.
+- **RF-16 ampliado:** además de los pedidos, ahora se avisa por correo en las cotizaciones (nuevo evento `CotizacionCambiadaEvent`, mismo patrón Observer): al cliente cuando su cotización tiene valor o Comercial acepta su contraoferta; al comercial cuando el cliente aprueba, rechaza o hace una contraoferta.
+- Panel del administrador: estado del correo de notificaciones y botón **«Enviar correo de prueba»** (se envía al correo del admin). Falta poner un Gmail real con contraseña de aplicación en `application-local.properties` del computador de la demo (SCRUM-318).
+- Diseños: `Logo` y `ArchivoDiseno` pasan de BLOB (64 KB) a **MEDIUMBLOB** (cambio 5 en `schema.sql`); la app acepta archivos de hasta 5 MB. Hay que volver a crear la base.

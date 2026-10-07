@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${productoForm.codigo == null ? 'Agregar producto' : 'Editar producto'})}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="layout">
+    <aside th:replace="~{fragments/layout :: sidebar('admin-productos')}"></aside>
+
+    <main class="contenido">
+        <th:block th:replace="~{fragments/layout :: mensajes}"></th:block>
+        <h4 class="mb-3" th:text="${productoForm.codigo == null} ? 'Agregar producto' : 'Editar producto'">Producto</h4>
+
+        <div class="card p-4" style="max-width:560px;">
+            <form th:action="@{/admin/productos}" th:object="${productoForm}" method="post" novalidate>
+                <input type="hidden" th:field="*{codigo}">
+
+                <div class="mb-2">
+                    <label class="form-label small" for="nombre">Nombre</label>
+                    <input type="text" id="nombre" class="form-control" th:field="*{nombre}" maxlength="100"
+                           placeholder="Ej: Caja Kraft mediana"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small" for="material">Material</label>
+                        <input type="text" id="material" class="form-control" th:field="*{material}" maxlength="100"
+                               placeholder="Ej: Cartón Kraft" list="materiales"
+                               th:classappend="${#fields.hasErrors('material')} ? 'is-invalid'">
+                        <datalist id="materiales">
+                            <option value="Cartón Kraft"></option>
+                            <option value="Cartón corrugado"></option>
+                            <option value="Cartón microcorrugado"></option>
+                            <option value="Cartón rígido"></option>
+                            <option value="Cartulina"></option>
+                            <option value="Papel Kraft"></option>
+                        </datalist>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('material')}" th:errors="*{material}"></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small" for="forma">Forma <span class="text-muted">(opcional)</span></label>
+                        <input type="text" id="forma" class="form-control" th:field="*{forma}" maxlength="100"
+                               placeholder="Ej: Rectangular, Bolsa con manija"
+                               th:classappend="${#fields.hasErrors('forma')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('forma')}" th:errors="*{forma}"></div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label small" for="tamano">Tamaño <span class="text-muted">(opcional)</span></label>
+                        <input type="text" id="tamano" class="form-control" th:field="*{tamano}" maxlength="40"
+                               placeholder="30x20x15 cm"
+                               th:classappend="${#fields.hasErrors('tamano')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('tamano')}" th:errors="*{tamano}"></div>
+                        <div class="form-text">Largo x ancho x alto y la unidad (cm o mm).</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small" for="precio">Precio por unidad (pesos)</label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text">$</span>
+                            <input type="text" id="precio" class="form-control" th:field="*{precio}" maxlength="8"
+                                   inputmode="numeric" placeholder="3500"
+                                   th:classappend="${#fields.hasErrors('precio')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
+                        </div>
+                        <div class="form-text">Solo números, sin puntos.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-ue">Guardar</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/admin/productos}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

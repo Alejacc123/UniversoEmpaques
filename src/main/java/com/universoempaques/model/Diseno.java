@@ -37,17 +37,16 @@ public class Diseno {
     private String color;
 
     /**
-     * Archivos binarios. columnDefinition = "BLOB" hace que "validate"
-     * acepte la columna BLOB del script (sin esto Hibernate espera otro
-     * tipo). OJO: BLOB en MySQL guarda maximo 64 KB por archivo
-     * (pendiente con Amelie: MEDIUMBLOB permite 16 MB).
+     * Archivos binarios. columnDefinition = "MEDIUMBLOB" hace que "validate"
+     * acepte la columna del script (sin esto Hibernate espera otro tipo).
+     * MEDIUMBLOB guarda hasta 16 MB; la app limita cada archivo a 5 MB.
      */
     @Lob
-    @Column(name = "Logo", columnDefinition = "BLOB")
+    @Column(name = "Logo", columnDefinition = "MEDIUMBLOB")
     private byte[] logo;
 
     @Lob
-    @Column(name = "ArchivoDiseno", columnDefinition = "BLOB")
+    @Column(name = "ArchivoDiseno", columnDefinition = "MEDIUMBLOB")
     private byte[] archivoDiseno;
 
     @Column(name = "FechaAprobado")

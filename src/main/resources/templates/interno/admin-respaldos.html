@@ -27,6 +27,17 @@
             </div>
         </div>
 
+        <div th:if="${errorRestauracion}" class="alert alert-danger py-2 small">
+            <strong>No se pudo restaurar.</strong> <span th:text="${errorRestauracion}"></span>
+            <div class="mt-1" th:if="${#strings.containsIgnoreCase(errorRestauracion, 'No se encontro el programa')}">
+                Este computador no tiene el cliente <code>mysql</code> o la ruta está mal. Configuren
+                <code>backup.ruta-mysql</code> en su <code>application-local.properties</code> (ver README).
+            </div>
+            <div class="mt-1" th:if="${hayPuntoDeshacer}">
+                Si la base quedó a medias, restaura <code>antes-de-restaurar.sql</code> para volver al estado anterior.
+            </div>
+        </div>
+
         <div class="row g-3 mb-3">
             <div class="col-md-6">
                 <div class="card p-3 h-100">
@@ -106,6 +117,38 @@
             </table>
         </div>
 
+        <div class="card p-3 mb-3 border-danger-subtle">
+            <h6 class="mb-1">Restaurar la base de datos</h6>
+            <p class="small text-muted mb-3">
+                Reemplaza <strong>todos</strong> los datos actuales (clientes, pedidos, usuarios...) por los de la copia elegida.
+                Antes se guarda el estado actual en <code>antes-de-restaurar.sql</code>, para poder deshacerlo.
+                Al terminar se cierra la sesión.
+            </p>
+            <form th:if="${!#lists.isEmpty(restaurables)}" th:action="@{/admin/respaldos/restaurar}" method="post"
+                  class="row g-2 align-items-end"
+                  onsubmit="var b=this.querySelector('button'); b.disabled=true; b.innerText='Restaurando...';">
+                <div class="col-md-6">
+                    <label class="form-label small" for="archivoRestaurar">Copia a restaurar</label>
+                    <select id="archivoRestaurar" name="archivo" class="form-select form-select-sm" required>
+                        <option value="" selected disabled>Elige una copia...</option>
+                        <option th:each="o : ${restaurables}" th:value="${o.archivo()}" th:text="${o.descripcion()}">-</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small" for="confirmacion">Escribe <strong>RESTAURAR</strong></label>
+                    <input id="confirmacion" name="confirmacion" type="text" class="form-control form-control-sm"
+                           required autocomplete="off" pattern="[Rr][Ee][Ss][Tt][Aa][Uu][Rr][Aa][Rr]"
+                           title="Escribe RESTAURAR para confirmar">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-danger btn-sm w-100">Restaurar</button>
+                </div>
+            </form>
+            <p th:if="${#lists.isEmpty(restaurables)}" class="small text-muted mb-0">
+                Todavía no hay copias que se puedan restaurar.
+            </p>
+        </div>
+
         <div class="card p-3 small text-muted">
             <strong class="text-dark mb-1">¿Cómo funciona?</strong>
             <ul class="mb-0 ps-3">
@@ -114,8 +157,9 @@
                     <strong>"Hacer copia total ahora"</strong> la reemplaza en el momento.</li>
                 <li><strong>Completa semanal</strong> (<code>semanal.sql</code>): toda la base, la automática la renueva cada lunes.</li>
                 <li><strong>Parcial</strong> (<code>parcial_&lt;día&gt;.sql</code>): los demás días, solo las tablas que cambiaron desde la semanal.
-                    Para restaurar un día: primero <code>semanal.sql</code> y luego el parcial de ese día.</li>
-                <li>La configuración de esta pantalla se guarda solo en este equipo (<code>configuracion.properties</code> dentro de la carpeta de respaldos).</li>
+                    Al restaurar un día, la app aplica <code>semanal.sql</code> y encima el parcial de ese día.</li>
+                <li><strong>Restaurar</strong>: usen solo copias hechas en <strong>este</strong> computador
+                    (MySQL en Windows guarda los nombres de tabla en minúscula y en Mac no).</li>
             </ul>
         </div>
     </main>

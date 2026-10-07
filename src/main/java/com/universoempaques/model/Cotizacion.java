@@ -56,4 +56,22 @@ public class Cotizacion {
     @ManyToOne
     @JoinColumn(name = "NITCliente")
     private Cliente cliente;
+
+    /** Valor que propone el cliente en una contraoferta (columna agregada). */
+    @Column(name = "ValorContraoferta")
+    private Double valorContraoferta;
+
+    /** Comentario del cliente al aprobar, rechazar o contraofertar (columna agregada). */
+    @Column(name = "Observaciones")
+    private String observaciones;
+
+    /** Foto de referencia opcional que sube el cliente (PNG/JPG, columna agregada). */
+    @Lob
+    @Column(name = "FotoReferencia", columnDefinition = "MEDIUMBLOB")
+    private byte[] fotoReferencia;
+
+    @Transient
+    public boolean isTieneFoto() {
+        return fotoReferencia != null && fotoReferencia.length > 0;
+    }
 }

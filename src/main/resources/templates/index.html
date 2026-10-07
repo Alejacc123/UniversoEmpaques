@@ -2,18 +2,25 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
-  <title>Universo Empaques</title>
+  <title>Universo Empaques — Empaques personalizados para tu negocio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cotiza, aprueba el diseño y sigue en línea tus pedidos de empaques personalizados en Universo Empaques.">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/estilo.css}">
   <link rel="icon" type="image/png" th:href="@{/img/favicon.png}">
   <link rel="apple-touch-icon" th:href="@{/img/apple-touch-icon.png}">
 </head>
-<body>
+<body class="landing">
 
+<!-- ============ Barra superior ============ -->
 <nav class="navbar navbar-dark navbar-ue px-3 px-md-4">
   <a class="navbar-brand py-0" th:href="@{/}"><img th:src="@{/img/logo-blanco.png}" alt="Universo Empaques" class="logo-nav"></a>
+  <div class="nav-publica d-flex gap-4 mx-auto">
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#productos" th:if="${!#lists.isEmpty(productos)}">Productos</a>
+    <a href="#por-que">¿Por qué nosotros?</a>
+  </div>
   <div class="d-flex gap-2" sec:authorize="!isAuthenticated()">
     <a class="btn btn-outline-light btn-sm" th:href="@{/login}">Iniciar sesión</a>
     <a class="btn btn-ue btn-sm" th:href="@{/registro}">Registrarme</a>
@@ -23,31 +30,184 @@
   </div>
 </nav>
 
-<div class="hero-landing py-5 text-center">
-  <div class="container py-4">
-    <h1 class="display-5 fw-bold">Empaques personalizados para tu negocio</h1>
-    <p class="lead text-white-50 mb-4">Cotiza, diseña y da seguimiento a tus pedidos de empaques en un solo lugar.</p>
-    <a class="btn btn-ue btn-lg px-4" sec:authorize="!isAuthenticated()" th:href="@{/registro}">Solicitar cotización</a>
-    <a class="btn btn-ue btn-lg px-4" sec:authorize="hasRole('CLIENTE')" th:href="@{/cliente/cotizaciones/nueva}">Solicitar cotización</a>
-  </div>
-</div>
+<!-- ============ Portada ============ -->
+<section class="hero-landing">
+  <div class="container py-5">
+    <div class="row align-items-center g-4 py-lg-4">
+      <div class="col-lg-6">
+        <span class="hero-etiqueta"><svg class="ic"><use th:href="@{/img/iconos.svg#ubicacion}"/></svg>Empaques personalizados · Bucaramanga</span>
+        <h1 class="display-5 mt-3 mb-3">Empaques con tu marca, del diseño a tu puerta</h1>
+        <p class="lead mb-4">
+          Cotiza en línea, aprueba el diseño de tus cajas y bolsas, y sigue cada pedido
+          desde que se produce hasta que se entrega. Todo en un solo lugar.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-ue btn-lg px-4" sec:authorize="!isAuthenticated()" th:href="@{/registro}">
+            Solicitar cotización<svg class="ic ms-2 me-0"><use th:href="@{/img/iconos.svg#flecha}"/></svg>
+          </a>
+          <a class="btn btn-ue btn-lg px-4" sec:authorize="hasRole('CLIENTE')" th:href="@{/cliente/cotizaciones/nueva}">
+            Solicitar cotización<svg class="ic ms-2 me-0"><use th:href="@{/img/iconos.svg#flecha}"/></svg>
+          </a>
+          <a class="btn btn-hero-sec btn-lg px-4" sec:authorize="!isAuthenticated()" th:href="@{/login}">Ya tengo cuenta</a>
+        </div>
+        <ul class="hero-puntos">
+          <li><svg class="ic"><use th:href="@{/img/iconos.svg#check}"/></svg>Cotización sin costo</li>
+          <li><svg class="ic"><use th:href="@{/img/iconos.svg#check}"/></svg>Tú apruebas el diseño</li>
+          <li><svg class="ic"><use th:href="@{/img/iconos.svg#check}"/></svg>Aviso por correo en cada etapa</li>
+        </ul>
+      </div>
 
-<div class="container py-5">
-  <div class="row g-4 text-center">
-    <div class="col-md-4">
-      <h5>Cartón Kraft</h5>
-      <p class="text-muted small">Empaques resistentes y sostenibles para alimentos y reposterías.</p>
-    </div>
-    <div class="col-md-4">
-      <h5>Diseño personalizado</h5>
-      <p class="text-muted small">Cajas, bolsas y empaques con tu marca y medidas exactas.</p>
-    </div>
-    <div class="col-md-4">
-      <h5>Seguimiento en línea</h5>
-      <p class="text-muted small">Consulta el estado de tu pedido desde que se cotiza hasta que se entrega.</p>
+      <!-- Ejemplo de lo que ve el cliente al seguir su pedido -->
+      <div class="col-lg-6">
+        <div class="demo-seguimiento" aria-hidden="true">
+          <div class="demo-fila mb-3">
+            <strong>Pedido #1024</strong>
+            <span class="status-pill status-produccion">En producción</span>
+          </div>
+          <div class="demo-producto mb-3">
+            <span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg></span>
+            <div class="small">
+              <div class="fw-semibold">Caja Kraft mediana</div>
+              <div class="text-muted">500 und · 30x20x15 cm · logo a una tinta</div>
+            </div>
+          </div>
+          <div class="progreso-pedido mb-3">
+            <div class="paso hecho"><div class="punto"></div><div class="nombre">Solicitado</div></div>
+            <div class="paso hecho"><div class="punto"></div><div class="nombre">Diseño</div></div>
+            <div class="paso actual"><div class="punto"></div><div class="nombre">Producción</div></div>
+            <div class="paso"><div class="punto"></div><div class="nombre">Despacho</div></div>
+            <div class="paso"><div class="punto"></div><div class="nombre">Entregado</div></div>
+          </div>
+          <div class="demo-fila text-muted border-top pt-2">
+            <span><svg class="ic"><use th:href="@{/img/iconos.svg#correo}"/></svg> Te avisamos al cambiar de etapa</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- ============ Como funciona ============ -->
+<section id="como-funciona" class="py-5 bg-white">
+  <div class="container py-lg-3">
+    <div class="text-center mb-5">
+      <h2 class="seccion-titulo">Así funciona</h2>
+      <p class="seccion-sub">Cuatro pasos desde la idea hasta tener los empaques en tu negocio.</p>
+    </div>
+    <div class="row g-4 text-center">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="paso-numero mb-3"><svg class="ic"><use th:href="@{/img/iconos.svg#cotizaciones}"/></svg><span>1</span></div>
+        <h6 class="fw-semibold">Pide tu cotización</h6>
+        <p class="text-muted small mb-0">Cuéntanos qué empaque necesitas, las medidas y la cantidad.</p>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="paso-numero mb-3"><svg class="ic"><use th:href="@{/img/iconos.svg#valor}"/></svg><span>2</span></div>
+        <h6 class="fw-semibold">Recibe el valor</h6>
+        <p class="text-muted small mb-0">Nuestro equipo comercial te responde con el precio y tú la apruebas.</p>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="paso-numero mb-3"><svg class="ic"><use th:href="@{/img/iconos.svg#diseno}"/></svg><span>3</span></div>
+        <h6 class="fw-semibold">Aprueba el diseño</h6>
+        <p class="text-muted small mb-0">Diseñamos cada empaque con tu marca y lo ajustamos hasta que te guste.</p>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="paso-numero mb-3"><svg class="ic"><use th:href="@{/img/iconos.svg#bodega}"/></svg><span>4</span></div>
+        <h6 class="fw-semibold">Lo producimos y entregamos</h6>
+        <p class="text-muted small mb-0">Sigue en línea cada etapa hasta que el pedido llega a tu dirección.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Catalogo (productos reales de la base de datos) ============ -->
+<section id="productos" class="py-5" th:if="${!#lists.isEmpty(productos)}">
+  <div class="container py-lg-3">
+    <div class="text-center mb-5">
+      <h2 class="seccion-titulo">Nuestros productos</h2>
+      <p class="seccion-sub">Algunos de los empaques que fabricamos. Todos se pueden personalizar en medidas, material y diseño.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-3" th:each="p : ${productos}">
+        <div class="card tarjeta-producto">
+          <div class="producto-figura"><svg class="ic"><use th:href="@{/img/iconos.svg#pedidos}"/></svg></div>
+          <div class="p-3">
+            <h6 class="fw-semibold mb-1" th:text="${p.nombre}">Producto</h6>
+            <div class="small text-muted mb-2">
+              <span th:text="${p.material}">Material</span>
+              <th:block th:if="${p.forma != null}"> · <span th:text="${p.forma}">Forma</span></th:block>
+            </div>
+            <div class="small text-muted mb-2" th:if="${p.tamano != null}">
+              <svg class="ic"><use th:href="@{/img/iconos.svg#medidas}"/></svg> <span th:text="${p.tamano}">Tamaño</span>
+            </div>
+            <div class="producto-precio" th:if="${p.precio != null}"
+                 th:text="'Desde $' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 0, 'COMMA')} + ' c/u'">Desde $0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-center small text-muted mt-4 mb-0">
+      ¿Necesitas otra medida o un empaque distinto? Pídelo en tu cotización y lo hacemos a tu medida.
+    </p>
+  </div>
+</section>
+
+<!-- ============ Por que elegirnos ============ -->
+<section id="por-que" class="py-5 bg-white">
+  <div class="container py-lg-3">
+    <div class="text-center mb-5">
+      <h2 class="seccion-titulo">¿Por qué Universo Empaques?</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3 beneficio">
+        <svg class="ic mb-2"><use th:href="@{/img/iconos.svg#hoja}"/></svg>
+        <h6 class="fw-semibold">Materiales sostenibles</h6>
+        <p class="text-muted small mb-0">Cartón y papel Kraft resistentes, ideales para alimentos, repostería y comercio.</p>
+      </div>
+      <div class="col-md-6 col-lg-3 beneficio">
+        <svg class="ic mb-2"><use th:href="@{/img/iconos.svg#diseno}"/></svg>
+        <h6 class="fw-semibold">Diseño a tu medida</h6>
+        <p class="text-muted small mb-0">Tu logo y tus colores en cada empaque. Ves cada versión y decides cuál se produce.</p>
+      </div>
+      <div class="col-md-6 col-lg-3 beneficio">
+        <svg class="ic mb-2"><use th:href="@{/img/iconos.svg#reloj}"/></svg>
+        <h6 class="fw-semibold">Seguimiento en tiempo real</h6>
+        <p class="text-muted small mb-0">Consulta cuándo tu pedido pasa por diseño, producción, despacho y entrega.</p>
+      </div>
+      <div class="col-md-6 col-lg-3 beneficio">
+        <svg class="ic mb-2"><use th:href="@{/img/iconos.svg#escudo}"/></svg>
+        <h6 class="fw-semibold">Tu información segura</h6>
+        <p class="text-muted small mb-0">Cuenta protegida con contraseña y copias de seguridad diarias de tus pedidos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Llamado a la accion ============ -->
+<section class="py-5">
+  <div class="container">
+    <div class="banda-cta p-4 p-md-5 d-md-flex align-items-center justify-content-between gap-4">
+      <div>
+        <h3 class="fw-bold mb-1">¿Listo para tu próximo empaque?</h3>
+        <p class="mb-md-0 opacity-75">Crea tu cuenta en un minuto y pide tu primera cotización.</p>
+      </div>
+      <a class="btn btn-light btn-lg px-4 fw-semibold" sec:authorize="!isAuthenticated()" th:href="@{/registro}">Crear mi cuenta</a>
+      <a class="btn btn-light btn-lg px-4 fw-semibold" sec:authorize="isAuthenticated()" th:href="@{/mi-panel}">Ir a mi panel</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Pie de pagina ============ -->
+<footer class="pie-publico py-4">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+    <img th:src="@{/img/logo-blanco.png}" alt="Universo Empaques" class="logo-nav">
+    <div class="d-flex gap-3">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a th:href="@{/login}">Iniciar sesión</a>
+      <a th:href="@{/registro}">Registrarme</a>
+    </div>
+    <div>© 2026 Universo Empaques · Bucaramanga, Santander</div>
+  </div>
+</footer>
 
 </body>
 </html>

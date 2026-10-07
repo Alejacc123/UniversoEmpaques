@@ -12,30 +12,36 @@
 </head>
 <body>
 
-<div class="d-flex align-items-center justify-content-center py-5 px-3" style="min-height:100vh;">
-  <div class="card shadow-sm p-4" style="width:100%; max-width:480px;">
+<div class="pagina-acceso d-flex align-items-center justify-content-center">
+  <div class="card tarjeta-acceso p-4" style="width:100%; max-width:520px;">
 
     <div class="text-center mb-3">
       <a th:href="@{/}"><img th:src="@{/img/logo-negro.png}" alt="Universo Empaques" class="logo-card"></a>
     </div>
-    <h6 class="text-center text-muted mb-3">Crea tu cuenta de cliente</h6>
+    <h6 class="text-center text-muted mb-1">Crea tu cuenta de cliente</h6>
+    <p class="text-center small text-muted mb-3">
+      Una cuenta por empresa (o por persona, si compras a tu nombre). Con ella cotizas,
+      apruebas diseños y sigues tus pedidos.
+    </p>
 
     <div th:if="${errorNegocio}" class="alert alert-danger py-2 small" th:text="${errorNegocio}"></div>
 
     <form th:action="@{/registro}" th:object="${registroClienteForm}" method="post">
 
       <div class="mb-2">
-        <label class="form-label small">NIT o documento</label>
+        <label class="form-label small">NIT o cédula</label>
         <input type="text" class="form-control" th:field="*{nit}" placeholder="900123456-7" maxlength="12"
                th:classappend="${#fields.hasErrors('nit')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('nit')}" th:errors="*{nit}"></div>
+        <div class="form-text">El NIT de la empresa. Si eres persona natural, tu número de cédula. No se puede cambiar después.</div>
       </div>
 
       <div class="mb-2">
-        <label class="form-label small">Nombre o nombre de la empresa</label>
+        <label class="form-label small">Nombre de la empresa o tu nombre</label>
         <input type="text" class="form-control" th:field="*{nombre}" maxlength="150"
                th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+        <div class="form-text">Como te conocen tus clientes (nombre comercial). Ej: Panadería La Espiga.</div>
       </div>
 
       <div class="mb-2">
@@ -43,6 +49,7 @@
         <input type="text" class="form-control" th:field="*{razonSocial}" maxlength="150"
                th:classappend="${#fields.hasErrors('razonSocial')} ? 'is-invalid'">
         <div class="invalid-feedback" th:if="${#fields.hasErrors('razonSocial')}" th:errors="*{razonSocial}"></div>
+        <div class="form-text">El nombre legal que aparece en el RUT o la Cámara de Comercio. Ej: La Espiga S.A.S. Déjalo vacío si eres persona natural.</div>
       </div>
 
       <div class="mb-2">

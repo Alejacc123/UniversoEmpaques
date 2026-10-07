@@ -1,0 +1,26 @@
+package com.universoempaques.dto;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+/** El cliente propone otro valor para una cotizacion (contraoferta). */
+@Getter
+@Setter
+public class ContraofertaForm {
+
+    @NotNull(message = "Indica el valor que propones")
+    @DecimalMin(value = "1", message = "El valor debe ser mayor a 0")
+    @DecimalMax(value = "9999999999", message = "Valor demasiado alto")
+    @Digits(integer = 10, fraction = 0, message = "Escribe el valor en pesos, sin puntos ni decimales")
+    private BigDecimal valor;
+
+    @Size(max = 255, message = "Máximo 255 caracteres")
+    private String observaciones;
+}
