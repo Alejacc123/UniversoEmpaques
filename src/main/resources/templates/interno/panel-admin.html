@@ -40,6 +40,25 @@
             </div>
         </div>
 
+        <!-- RF-16: estado del correo de notificaciones -->
+        <div class="card p-3 mb-4 d-flex flex-row flex-wrap align-items-center gap-3">
+            <span class="dato-icono"><svg class="ic"><use th:href="@{/img/iconos.svg#correo}"/></svg></span>
+            <div class="flex-grow-1">
+                <div class="fw-semibold small">Notificaciones por correo</div>
+                <div class="small text-muted" th:if="${correoConfigurado}">
+                    Activas. Se envían desde <strong th:text="${remitente}">correo</strong>.
+                </div>
+                <div class="small text-muted" th:unless="${correoConfigurado}">
+                    Sin correo configurado: los avisos quedan escritos en la consola de la aplicación.
+                    Para activarlas, agreguen <code>spring.mail.username</code> y <code>spring.mail.password</code>
+                    en <code>application-local.properties</code>.
+                </div>
+            </div>
+            <form th:if="${correoConfigurado}" th:action="@{/admin/correo/prueba}" method="post" class="mb-0">
+                <button class="btn btn-outline-ue btn-sm">Enviar correo de prueba</button>
+            </form>
+        </div>
+
         <div class="d-flex gap-2 flex-wrap mb-4">
             <a class="btn btn-ue btn-sm" th:href="@{/admin/usuarios/nuevo}"><svg class="ic"><use th:href="@{/img/iconos.svg#mas}"/></svg>Registrar usuario</a>
             <a class="btn btn-outline-ue btn-sm" th:href="@{/admin/productos}">Productos</a>

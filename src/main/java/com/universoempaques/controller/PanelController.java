@@ -6,12 +6,15 @@ import com.universoempaques.model.EstadoCotizacionTipo;
 import com.universoempaques.service.BackupService;
 import com.universoempaques.service.ClienteService;
 import com.universoempaques.service.CotizacionService;
+import com.universoempaques.service.NotificacionService;
 import com.universoempaques.service.PedidoService;
 import com.universoempaques.service.UsuarioService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Paneles de inicio de cada rol/cargo (RF-01: redireccion post-login),
@@ -25,10 +28,12 @@ public class PanelController {
     private final UsuarioService usuarioService;
     private final ClienteService clienteService;
     private final BackupService backupService;
+    private final NotificacionService notificacionService;
 
     public PanelController(CotizacionService cotizacionService, PedidoService pedidoService,
                            UsuarioService usuarioService, ClienteService clienteService,
-                           BackupService backupService) {
+                           BackupService backupService, NotificacionService notificacionService) {
+        this.notificacionService = notificacionService;
         this.cotizacionService = cotizacionService;
         this.pedidoService = pedidoService;
         this.usuarioService = usuarioService;
@@ -99,6 +104,22 @@ public class PanelController {
         model.addAttribute("totalPedidos", pedidoService.listarTodos().size());
         var archivos = backupService.listarArchivos();
         model.addAttribute("ultimoRespaldo", archivos.isEmpty() ? null : archivos.get(0).modificado());
+        model.addAttribute("correoConfigurado", notificacionService.correoConfigurado());
+        model.addAttribute("remitente", notificacionService.getRemitente());
         return "interno/panel-admin";
+    }
+
+    /** RF-16: el administrador prueba que el correo de notificaciones funciona (se envia a su propio correo). */
+    @PostMapping("/admin/correo/prueba")
+    public String probarCorreo(Authentication auth,
+                               RedirectAttributes flash) {
+        String para = principal(auth).getUsername();
+        String error = notificacionService.enviarPrueba(para);
+        if (error == null) {
+            flash.addFlashAttribute("exito", "Correo de prueba enviado a " + para + ". Revisa tu bandeja (y la carpeta de spam).");
+        } else {
+            flash.addFlashAttribute("error", error);
+        }
+        return "redirect:/admin/panel";
     }
 }

@@ -6,6 +6,7 @@ import com.universoempaques.dto.SolicitarCotizacionForm;
 import com.universoempaques.model.*;
 import com.universoempaques.repository.ClienteRepository;
 import com.universoempaques.repository.CotizacionRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,13 +32,23 @@ public class CotizacionService {
     private final CotizacionRepository cotizacionRepository;
     private final ClienteRepository clienteRepository;
     private final PedidoService pedidoService;
+    private final ApplicationEventPublisher eventos;
 
     public CotizacionService(CotizacionRepository cotizacionRepository,
                              ClienteRepository clienteRepository,
-                             PedidoService pedidoService) {
+                             PedidoService pedidoService,
+                             ApplicationEventPublisher eventos) {
         this.cotizacionRepository = cotizacionRepository;
         this.clienteRepository = clienteRepository;
         this.pedidoService = pedidoService;
+        this.eventos = eventos;
+    }
+
+    /** Guarda y avisa (Observer): NotificacionService envia el correo a quien corresponda. */
+    private Cotizacion guardarYAvisar(Cotizacion cotizacion, boolean porComercial) {
+        Cotizacion guardada = cotizacionRepository.save(cotizacion);
+        eventos.publishEvent(new CotizacionCambiadaEvent(guardada.getCodigo(), guardada.getEstado(), porComercial));
+        return guardada;
     }
 
     // ------------------------------------------------------------------
@@ -82,7 +93,7 @@ public class CotizacionService {
         Cotizacion cotizacion = buscarPendienteDeRespuesta(codigo, nitCliente);
         cotizacion.setEstado(aprobar ? EstadoCotizacionTipo.APROBADA : EstadoCotizacionTipo.RECHAZADA);
         cotizacion.setObservaciones(limpiar(observaciones));
-        return cotizacionRepository.save(cotizacion);
+        return guardarYAvisar(cotizacion, false);
     }
 
     /**
@@ -99,7 +110,7 @@ public class CotizacionService {
         cotizacion.setValorContraoferta(propuesto);
         cotizacion.setObservaciones(limpiar(form.getObservaciones()));
         cotizacion.setEstado(EstadoCotizacionTipo.CONTRAOFERTA);
-        return cotizacionRepository.save(cotizacion);
+        return guardarYAvisar(cotizacion, false);
     }
 
     private Cotizacion buscarPendienteDeRespuesta(Integer codigo, String nitCliente) {
@@ -154,7 +165,7 @@ public class CotizacionService {
         cotizacion.setValor(form.getValor().doubleValue());
         cotizacion.setUsuario(comercial);
         cotizacion.setEstado(EstadoCotizacionTipo.COTIZADA);
-        return cotizacionRepository.save(cotizacion);
+        return guardarYAvisar(cotizacion, true);
     }
 
     /**
@@ -170,7 +181,7 @@ public class CotizacionService {
         cotizacion.setValor(cotizacion.getValorContraoferta());
         cotizacion.setUsuario(comercial);
         cotizacion.setEstado(EstadoCotizacionTipo.APROBADA);
-        return cotizacionRepository.save(cotizacion);
+        return guardarYAvisar(cotizacion, true);
     }
 
     /**

@@ -127,4 +127,6 @@ una entrada al final de cada sesión (en su propio commit).
 - Horas trabajadas: máximo 99.999.999,99 (el límite de la columna DECIMAL(10,2)).
 - Datos de ejemplo: una cotización en contraoferta (Panadería La Espiga). Pruebas nuevas en `CotizacionServiceTest` y `DatosColombiaTest`.
 - RF-16 ya estaba implementado (Observer + `NotificacionService`, 28/09); solo falta configurar el correo real.
+- **RF-16 ampliado:** además de los pedidos, ahora se avisa por correo en las cotizaciones (nuevo evento `CotizacionCambiadaEvent`, mismo patrón Observer): al cliente cuando su cotización tiene valor o Comercial acepta su contraoferta; al comercial cuando el cliente aprueba, rechaza o hace una contraoferta.
+- Panel del administrador: estado del correo de notificaciones y botón **«Enviar correo de prueba»** (se envía al correo del admin). Falta poner un Gmail real con contraseña de aplicación en `application-local.properties` del computador de la demo (SCRUM-318).
 
