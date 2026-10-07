@@ -59,7 +59,7 @@ public class RegistrarUsuarioForm {
 
     /** Columnas DECIMAL(10,2) en la BD: se limita a valores razonables. */
     @PositiveOrZero(message = "No puede ser negativo")
-    @Digits(integer = 4, fraction = 2, message = "Máximo 9999 horas, con 2 decimales")
+    @Digits(integer = 8, fraction = 2, message = "Máximo 99.999.999 horas, con 2 decimales")
     private BigDecimal cantHorasTrabajadas;
 
     @PositiveOrZero(message = "No puede ser negativo")

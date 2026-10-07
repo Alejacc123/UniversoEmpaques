@@ -100,6 +100,9 @@ a.tarjeta-dato:hover{ border-color:var(--ue-blue); box-shadow:0 2px 8px rgba(75,
   content:""; position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--ue-blue);
 }
 
+/* Foto de referencia de una cotizacion */
+.foto-cotizacion{ max-width:220px; max-height:160px; border-radius:8px; border:1px solid var(--ue-border); object-fit:cover; }
+
 /* ---------- Disenos ---------- */
 .miniatura-diseno{
   width:64px; height:64px; border:1px solid var(--ue-border); border-radius:8px; overflow:hidden;

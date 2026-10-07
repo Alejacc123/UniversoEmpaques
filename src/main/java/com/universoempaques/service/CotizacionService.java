@@ -1,5 +1,6 @@
 package com.universoempaques.service;
 
+import com.universoempaques.dto.ContraofertaForm;
 import com.universoempaques.dto.RegistrarValorCotizacionForm;
 import com.universoempaques.dto.SolicitarCotizacionForm;
 import com.universoempaques.model.*;
@@ -7,7 +8,9 @@ import com.universoempaques.repository.ClienteRepository;
 import com.universoempaques.repository.CotizacionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +20,8 @@ import java.util.Optional;
  *   RF-06 el cliente solicita          -> solicitar(...)
  *   RF-07 el comercial pone el valor    -> registrarValor(...)
  *   RF-08 el cliente aprueba o rechaza  -> responder(...)
+ *         o propone otro valor          -> contraofertar(...) y el
+ *         comercial la acepta o pone un valor nuevo
  *   RF-09 ambos consultan               -> listar... / buscar...
  *   RF-10 de la aprobada sale el pedido -> generarPedido(...)
  */
@@ -43,12 +48,14 @@ public class CotizacionService {
     @Transactional
     public Cotizacion solicitar(SolicitarCotizacionForm form, String nitCliente) {
         Cliente cliente = buscarCliente(nitCliente);
+        byte[] foto = leerFoto(form.getFoto());   // valida antes de guardar nada
 
         Cotizacion cotizacion = new Cotizacion();
         cotizacion.setCliente(cliente);
         cotizacion.setEspecificaciones(armarEspecificaciones(form));
         cotizacion.setEstado(EstadoCotizacionTipo.SOLICITADA);
         cotizacion.setFechaSolicitud(LocalDate.now());
+        cotizacion.setFotoReferencia(foto);
         return cotizacionRepository.save(cotizacion);
     }
 
@@ -71,13 +78,36 @@ public class CotizacionService {
 
     /** RF-08: el cliente aprueba o rechaza una cotizacion que ya tiene valor. */
     @Transactional
-    public Cotizacion responder(Integer codigo, String nitCliente, boolean aprobar) {
+    public Cotizacion responder(Integer codigo, String nitCliente, boolean aprobar, String observaciones) {
+        Cotizacion cotizacion = buscarPendienteDeRespuesta(codigo, nitCliente);
+        cotizacion.setEstado(aprobar ? EstadoCotizacionTipo.APROBADA : EstadoCotizacionTipo.RECHAZADA);
+        cotizacion.setObservaciones(limpiar(observaciones));
+        return cotizacionRepository.save(cotizacion);
+    }
+
+    /**
+     * Contraoferta: el cliente propone otro valor (y puede explicar por que).
+     * La cotizacion vuelve a Comercial en estado CONTRAOFERTA.
+     */
+    @Transactional
+    public Cotizacion contraofertar(Integer codigo, String nitCliente, ContraofertaForm form) {
+        Cotizacion cotizacion = buscarPendienteDeRespuesta(codigo, nitCliente);
+        double propuesto = form.getValor().doubleValue();
+        if (cotizacion.getValor() != null && propuesto == cotizacion.getValor()) {
+            throw new IllegalArgumentException("El valor que propones es igual al cotizado; si estás de acuerdo, apruébala.");
+        }
+        cotizacion.setValorContraoferta(propuesto);
+        cotizacion.setObservaciones(limpiar(form.getObservaciones()));
+        cotizacion.setEstado(EstadoCotizacionTipo.CONTRAOFERTA);
+        return cotizacionRepository.save(cotizacion);
+    }
+
+    private Cotizacion buscarPendienteDeRespuesta(Integer codigo, String nitCliente) {
         Cotizacion cotizacion = buscarDelCliente(codigo, nitCliente);
         if (cotizacion.getEstado() != EstadoCotizacionTipo.COTIZADA) {
             throw new IllegalArgumentException("Solo puedes responder una cotización que ya tenga valor y esté pendiente.");
         }
-        cotizacion.setEstado(aprobar ? EstadoCotizacionTipo.APROBADA : EstadoCotizacionTipo.RECHAZADA);
-        return cotizacionRepository.save(cotizacion);
+        return cotizacion;
     }
 
     public long contarPendientesDeRespuesta(String nitCliente) {
@@ -117,12 +147,29 @@ public class CotizacionService {
     public Cotizacion registrarValor(Integer codigo, RegistrarValorCotizacionForm form, Usuario comercial) {
         Cotizacion cotizacion = buscarPorCodigo(codigo);
         if (cotizacion.getEstado() != EstadoCotizacionTipo.SOLICITADA
-                && cotizacion.getEstado() != EstadoCotizacionTipo.COTIZADA) {
+                && cotizacion.getEstado() != EstadoCotizacionTipo.COTIZADA
+                && cotizacion.getEstado() != EstadoCotizacionTipo.CONTRAOFERTA) {
             throw new IllegalArgumentException("Esta cotización ya fue respondida por el cliente; no se puede cambiar el valor.");
         }
         cotizacion.setValor(form.getValor().doubleValue());
         cotizacion.setUsuario(comercial);
         cotizacion.setEstado(EstadoCotizacionTipo.COTIZADA);
+        return cotizacionRepository.save(cotizacion);
+    }
+
+    /**
+     * El comercial acepta el valor que propuso el cliente: ese pasa a ser
+     * el valor de la cotizacion y queda APROBADA (lista para el pedido).
+     */
+    @Transactional
+    public Cotizacion aceptarContraoferta(Integer codigo, Usuario comercial) {
+        Cotizacion cotizacion = buscarPorCodigo(codigo);
+        if (cotizacion.getEstado() != EstadoCotizacionTipo.CONTRAOFERTA || cotizacion.getValorContraoferta() == null) {
+            throw new IllegalArgumentException("Esta cotización no tiene una contraoferta pendiente.");
+        }
+        cotizacion.setValor(cotizacion.getValorContraoferta());
+        cotizacion.setUsuario(comercial);
+        cotizacion.setEstado(EstadoCotizacionTipo.APROBADA);
         return cotizacionRepository.save(cotizacion);
     }
 
@@ -151,6 +198,46 @@ public class CotizacionService {
     }
 
     // ------------------------------------------------------------------
+
+    /** Foto opcional: PNG o JPG (se revisa la firma del archivo, no la extension), hasta 5 MB. */
+    static byte[] leerFoto(MultipartFile foto) {
+        if (foto == null || foto.isEmpty()) {
+            return null;
+        }
+        if (foto.getSize() > MAX_FOTO) {
+            throw new IllegalArgumentException("La foto pesa más de 5 MB.");
+        }
+        byte[] b;
+        try {
+            b = foto.getBytes();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("No se pudo leer la foto. Intenta de nuevo.");
+        }
+        if (!esImagen(b)) {
+            throw new IllegalArgumentException("La foto debe ser una imagen JPG o PNG.");
+        }
+        return b;
+    }
+
+    static final long MAX_FOTO = 5L * 1024 * 1024;
+
+    static boolean esImagen(byte[] b) {
+        if (b == null || b.length < 4) return false;
+        boolean png = (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G';
+        boolean jpg = (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
+        return png || jpg;
+    }
+
+    /** Tipo de contenido para mostrar la foto en el navegador. */
+    public static String tipoDeImagen(byte[] b) {
+        return b != null && b.length > 0 && (b[0] & 0xFF) == 0x89 ? "image/png" : "image/jpeg";
+    }
+
+    private static String limpiar(String texto) {
+        if (texto == null || texto.isBlank()) return null;
+        String t = texto.trim();
+        return t.length() > 255 ? t.substring(0, 255) : t;
+    }
 
     private Cliente buscarCliente(String nit) {
         return clienteRepository.findById(nit)

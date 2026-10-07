@@ -40,6 +40,7 @@ una entrada al final de cada sesión (en su propio commit).
 7. `Diseno.CodigoUsuario` es uno solo: se guarda quien REVISÓ (como dice el diccionario); se pierde quién lo subió. ¿Agregar `CodigoUsuarioDisenador`?
 5. `Cotizacion.CodigoPedido`: se usa así: la cotización nace sin pedido (NULL) y, al aprobarse, el comercial genera el pedido y se llena CodigoPedido. Confirmar con Amelie.
 6. `Diseno` cuelga de `DetallePedido` (no de `Pedido`): confirmar que es intencional.
+8. **Nuevas columnas en `Cotizacion`** (`ValorContraoferta`, `Observaciones`, `FotoReferencia` MEDIUMBLOB) por las correcciones de la Product Owner: Amelie debe agregarlas al diccionario de datos.
 
 ## Registro de sesiones
 
@@ -114,3 +115,16 @@ una entrada al final de cada sesión (en su propio commit).
 - Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
 
 - Landing adaptada al celular: portada, pasos, productos, beneficios y llamado a la acción centrados; botones a lo ancho y barra superior en una sola línea.
+
+### 2026-10-06 — Juan Gamboa (Backend) — correcciones de la Product Owner
+- Mi cuenta: el texto ahora dice «solo los puede cambiar Universo Empaques».
+- Cotización: el cliente puede subir una **foto de referencia** opcional (JPG/PNG hasta 5 MB, se valida la firma del archivo); Comercial y el cliente la ven en el detalle.
+- Cotización: las **medidas** son 3 campos numéricos en cm (largo, ancho, alto opcional) y se guardan como «30x20x15 cm».
+- **Contraoferta:** con la cotización «Cotizada», el cliente puede aprobar o rechazar dejando observaciones, o proponer otro valor (estado nuevo `CONTRAOFERTA`). Comercial acepta la contraoferta (queda aprobada con ese valor) o responde con un valor nuevo (vuelve a «Cotizada»). El panel de Comercial cuenta las contraofertas como «por cotizar».
+- `schema.sql`: 3 columnas nuevas en Cotizacion (cambio 4). **Hay que volver a crear la base** (o hacer ALTER TABLE).
+- Copias de seguridad: se quitó de la ayuda la mención a `configuracion.properties`.
+- N.º de documento: **exactamente 10 dígitos**.
+- Horas trabajadas: máximo 99.999.999,99 (el límite de la columna DECIMAL(10,2)).
+- Datos de ejemplo: una cotización en contraoferta (Panadería La Espiga). Pruebas nuevas en `CotizacionServiceTest` y `DatosColombiaTest`.
+- RF-16 ya estaba implementado (Observer + `NotificacionService`, 28/09); solo falta configurar el correo real.
+

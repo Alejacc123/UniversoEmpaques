@@ -25,7 +25,7 @@ import java.util.List;
  *
  * Deja al menos un ejemplo de cada cosa:
  *   - 4 clientes mas (empresa, persona natural y uno INACTIVO) y 2 productos mas.
- *   - Cotizaciones en los 4 estados (solicitada, cotizada, aprobada, rechazada).
+ *   - Cotizaciones en todos sus estados (solicitada, cotizada, contraoferta, aprobada, rechazada).
  *   - Pedidos en los 6 estados, con su historial, fechas repartidas en las
  *     ultimas semanas (para que los reportes tengan datos) y disenos en
  *     sus 3 estados (pendiente, aprobado, ajuste solicitado).
@@ -104,6 +104,11 @@ public class DatosDeEjemplo {
                 "Bolsa de papel para pan | 1000 und | 18x30 cm | Papel Kraft | Logo de la panadería");
         cotizacion(cafe, comercial, EstadoCotizacionTipo.RECHAZADA, 900000.0, 10,
                 "Caja para café en grano | 300 und | 12x8x20 cm | Cartón rígido | Acabado mate");
+        Cotizacion contraoferta = cotizacion(espiga, comercial, EstadoCotizacionTipo.CONTRAOFERTA, 480000.0, 2,
+                "Caja para repostería | 1000 und | 20x20x10 cm | Cartón microcorrugado | Con visor");
+        contraoferta.setValorContraoferta(420000.0);
+        contraoferta.setObservaciones("Si pedimos 1.000 unidades, ¿nos la pueden dejar en $420.000?");
+        cotizacionRepository.save(contraoferta);
 
         // ---------------- Pedidos en los 6 estados ----------------
         // 1) SOLICITADO: lo pidio el cliente desde la web (sin comercial asignado)
@@ -179,7 +184,7 @@ public class DatosDeEjemplo {
                 etapa(EstadoPedidoTipo.ENTREGADO, 26, bodega, "Entregado en la panadería"));
         diseno(p7d, 1, EstadoDisenoTipo.APROBADO, comercial, null, 37, new Color(196, 144, 82));
 
-        log.info("Datos de ejemplo creados: 4 clientes, 2 productos, 5 cotizaciones y 7 pedidos con historial y diseños.");
+        log.info("Datos de ejemplo creados: 4 clientes, 2 productos, 6 cotizaciones y 7 pedidos con historial y diseños.");
     }
 
     // ------------------------------------------------------------------

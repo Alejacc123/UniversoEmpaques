@@ -11,6 +11,9 @@
 --      VARCHAR(20): un numero colombiano de 10 digitos (3001234567) no cabe
 --      en INT (maximo 2.147.483.647). Pendiente que Amelie lo actualice en
 --      el diccionario de datos.
+--   4. AGREGADO - Cotizacion: ValorContraoferta, Observaciones y FotoReferencia
+--      (pedido de la Product Owner: el cliente puede subir una foto de
+--      referencia, dejar observaciones y proponer otro valor).
 --
 -- IMPORTANTE (Linux/Docker): MySQL distingue mayusculas en los nombres
 -- de tabla. No cambien "Cliente" por "cliente", etc.
@@ -119,6 +122,9 @@ CREATE TABLE Cotizacion (
     CodigoPedido INT,
     FechaSolicitud DATE,
     NITCliente VARCHAR(255),
+    ValorContraoferta DOUBLE,                         -- AGREGADO: valor que propone el cliente
+    Observaciones VARCHAR(255),                       -- AGREGADO: comentario del cliente al responder
+    FotoReferencia MEDIUMBLOB,                        -- AGREGADO: foto opcional de referencia (hasta 5 MB)
     FOREIGN KEY (CodigoUsuario) REFERENCES Usuario(Codigo),
     FOREIGN KEY (CodigoPedido) REFERENCES Pedido(Codigo),
     FOREIGN KEY (NITCliente) REFERENCES Cliente(NIT)   -- CORREGIDO: sin coma final

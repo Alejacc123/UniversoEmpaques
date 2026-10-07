@@ -30,6 +30,17 @@
                 <dd class="col-sm-8" th:text="${c.especificaciones}">-</dd>
                 <dt class="col-sm-4">Valor</dt>
                 <dd class="col-sm-8 fs-5 fw-bold" th:text="${c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : 'Por cotizar'}">-</dd>
+                <dt class="col-sm-4" th:if="${c.valorContraoferta != null}">Tu contraoferta</dt>
+                <dd class="col-sm-8" th:if="${c.valorContraoferta != null}"
+                    th:text="'$' + ${#numbers.formatDecimal(c.valorContraoferta, 0, 'POINT', 0, 'COMMA')}">-</dd>
+                <dt class="col-sm-4" th:if="${c.observaciones != null}">Tus observaciones</dt>
+                <dd class="col-sm-8" th:if="${c.observaciones != null}" th:text="${c.observaciones}">-</dd>
+                <dt class="col-sm-4" th:if="${c.tieneFoto}">Foto de referencia</dt>
+                <dd class="col-sm-8" th:if="${c.tieneFoto}">
+                    <a th:href="@{/cliente/cotizaciones/{id}/foto(id=${c.codigo})}" target="_blank">
+                        <img th:src="@{/cliente/cotizaciones/{id}/foto(id=${c.codigo})}" alt="Foto de referencia" class="foto-cotizacion">
+                    </a>
+                </dd>
                 <dt class="col-sm-4" th:if="${c.pedido != null}">Pedido</dt>
                 <dd class="col-sm-8" th:if="${c.pedido != null}" th:text="'PED-' + ${c.pedido.codigo}">-</dd>
             </dl>
@@ -37,16 +48,39 @@
             <!-- RF-08: solo se puede responder cuando ya tiene valor -->
             <div th:if="${c.estado.name() == 'COTIZADA'}" class="border-top pt-3 mt-3">
                 <p class="small mb-2">¿Aceptas esta cotización?</p>
-                <div class="d-flex gap-2">
-                    <form th:action="@{/cliente/cotizaciones/{id}/aprobar(id=${c.codigo})}" method="post">
+                <!-- Un solo comentario sirve para aprobar o rechazar (cada boton envia el formulario a su ruta) -->
+                <form method="post" th:action="@{/cliente/cotizaciones/{id}/aprobar(id=${c.codigo})}">
+                    <textarea name="observaciones" class="form-control form-control-sm mb-2" rows="2" maxlength="255"
+                              placeholder="Observaciones para el área comercial (opcional)"></textarea>
+                    <div class="d-flex flex-wrap gap-2">
                         <button class="btn btn-ue">Aprobar</button>
+                        <button class="btn btn-outline-danger"
+                                th:formaction="@{/cliente/cotizaciones/{id}/rechazar(id=${c.codigo})}"
+                                onclick="return confirm('¿Seguro que quieres rechazar esta cotización?');">Rechazar</button>
+                    </div>
+                </form>
+
+                <!-- Contraoferta: proponer otro valor -->
+                <details class="mt-3" th:open="${abrirContraoferta}">
+                    <summary class="small text-ue">¿Te parece alto? Propón otro valor</summary>
+                    <form class="mt-2" th:action="@{/cliente/cotizaciones/{id}/contraoferta(id=${c.codigo})}"
+                          th:object="${contraofertaForm}" method="post">
+                        <div class="input-group mb-2">
+                            <span class="input-group-text">$</span>
+                            <input type="number" min="1" step="1" class="form-control" th:field="*{valor}"
+                                   placeholder="Valor que propones"
+                                   th:classappend="${#fields.hasErrors('valor')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></div>
+                        </div>
+                        <textarea class="form-control form-control-sm mb-2" rows="2" maxlength="255" th:field="*{observaciones}"
+                                  placeholder="¿Por qué? Ej: si pedimos 1.000 unidades, ¿lo dejan en este valor?"></textarea>
+                        <button class="btn btn-outline-ue btn-sm">Enviar contraoferta</button>
                     </form>
-                    <form th:action="@{/cliente/cotizaciones/{id}/rechazar(id=${c.codigo})}" method="post"
-                          onsubmit="return confirm('¿Seguro que quieres rechazar esta cotización?');">
-                        <button class="btn btn-outline-danger">Rechazar</button>
-                    </form>
-                </div>
+                </details>
             </div>
+            <p th:if="${c.estado.name() == 'CONTRAOFERTA'}" class="text-muted small border-top pt-3 mt-3 mb-0">
+                Enviaste una contraoferta. El área comercial la revisará: puede aceptarla o proponerte un valor nuevo.
+            </p>
             <p th:if="${c.estado.name() == 'SOLICITADA'}" class="text-muted small border-top pt-3 mt-3 mb-0">
                 El área comercial está revisando tu solicitud.
             </p>

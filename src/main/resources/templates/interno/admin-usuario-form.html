@@ -69,7 +69,7 @@
                 <div class="row g-2 mb-3">
                     <div class="col-md-4">
                         <label class="form-label small">N.º de documento</label>
-                        <input type="text" class="form-control" th:field="*{numDocumento}" inputmode="numeric" maxlength="10"
+                        <input type="text" class="form-control" th:field="*{numDocumento}" inputmode="numeric" maxlength="10" minlength="10" placeholder="10 dígitos"
                                th:classappend="${#fields.hasErrors('numDocumento')} ? 'is-invalid'">
                         <div class="invalid-feedback" th:if="${#fields.hasErrors('numDocumento')}" th:errors="*{numDocumento}"></div>
                     </div>
@@ -98,7 +98,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small">Horas trabajadas</label>
-                        <input type="number" step="0.01" min="0" max="9999.99" class="form-control" th:field="*{cantHorasTrabajadas}"
+                        <input type="number" step="0.01" min="0" max="99999999.99" class="form-control" th:field="*{cantHorasTrabajadas}"
                                th:classappend="${#fields.hasErrors('cantHorasTrabajadas')} ? 'is-invalid'">
                         <div class="invalid-feedback" th:if="${#fields.hasErrors('cantHorasTrabajadas')}" th:errors="*{cantHorasTrabajadas}"></div>
                     </div>

@@ -59,7 +59,9 @@ public class PanelController {
     @GetMapping("/comercial/panel")
     public String panelComercial(Authentication auth, Model model) {
         model.addAttribute("nombre", principal(auth).getNombreParaSaludo());
-        model.addAttribute("porCotizar", cotizacionService.contarPorEstado(EstadoCotizacionTipo.SOLICITADA));
+        // Por cotizar = solicitudes nuevas + contraofertas que esperan respuesta de Comercial
+        model.addAttribute("porCotizar", cotizacionService.contarPorEstado(EstadoCotizacionTipo.SOLICITADA)
+                + cotizacionService.contarPorEstado(EstadoCotizacionTipo.CONTRAOFERTA));
         model.addAttribute("esperandoCliente", cotizacionService.contarPorEstado(EstadoCotizacionTipo.COTIZADA));
         model.addAttribute("aprobadasSinPedido", cotizacionService.contarAprobadasSinPedido());
         model.addAttribute("totalPedidos", pedidoService.listarTodos().size());

@@ -67,4 +67,14 @@ class DatosColombiaTest {
         assertEquals("3001234567", DatosColombia.soloDigitos("300 123 4567"));
         assertNull(DatosColombia.soloDigitos("   "));
     }
+
+    @Test
+    void elDocumentoDebeTenerExactamenteDiezDigitos() {
+        assertTrue("1098765432".matches(DatosColombia.DOCUMENTO));
+        assertTrue("".matches(DatosColombia.DOCUMENTO));          // opcional
+        assertFalse("12345678".matches(DatosColombia.DOCUMENTO));  // 8 digitos
+        assertFalse("123456789".matches(DatosColombia.DOCUMENTO));
+        assertFalse("10987654321".matches(DatosColombia.DOCUMENTO));
+        assertFalse("109876543a".matches(DatosColombia.DOCUMENTO));
+    }
 }

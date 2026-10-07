@@ -7,6 +7,9 @@ import com.universoempaques.model.EstadoCotizacionTipo;
 import com.universoempaques.model.Pedido;
 import com.universoempaques.service.CotizacionService;
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -68,11 +71,36 @@ public class ComercialCotizacionController {
         try {
             AppUserPrincipal principal = (AppUserPrincipal) auth.getPrincipal();
             cotizacionService.registrarValor(codigo, registrarValorCotizacionForm, principal.getUsuario());
-            flash.addFlashAttribute("exito", "Valor registrado. El cliente ya puede aprobar o rechazar la cotización.");
+            flash.addFlashAttribute("exito", "Valor registrado. El cliente ya puede aprobar, rechazar o proponer otro valor.");
         } catch (IllegalArgumentException ex) {
             flash.addFlashAttribute("error", ex.getMessage());
         }
         return "redirect:/comercial/cotizaciones/" + codigo;
+    }
+
+    /** Acepta el valor que propuso el cliente: la cotizacion queda aprobada. */
+    @PostMapping("/{codigo}/aceptar-contraoferta")
+    public String aceptarContraoferta(@PathVariable Integer codigo, Authentication auth, RedirectAttributes flash) {
+        try {
+            AppUserPrincipal principal = (AppUserPrincipal) auth.getPrincipal();
+            cotizacionService.aceptarContraoferta(codigo, principal.getUsuario());
+            flash.addFlashAttribute("exito", "Contraoferta aceptada: la cotización quedó aprobada con el valor del cliente.");
+        } catch (IllegalArgumentException ex) {
+            flash.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/comercial/cotizaciones/" + codigo;
+    }
+
+    @GetMapping("/{codigo}/foto")
+    public ResponseEntity<byte[]> foto(@PathVariable Integer codigo) {
+        try {
+            byte[] foto = cotizacionService.buscarPorCodigo(codigo).getFotoReferencia();
+            if (foto == null) return ResponseEntity.notFound().build();
+            return ResponseEntity.ok().contentType(MediaType.parseMediaType(CotizacionService.tipoDeImagen(foto)))
+                    .cacheControl(CacheControl.noStore()).body(foto);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{codigo}/pedido")

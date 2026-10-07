@@ -41,7 +41,7 @@ public class FormulariosAdvice {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public String archivoMuyGrande(HttpServletRequest request, RedirectAttributes flash) {
-        flash.addFlashAttribute("error", "El archivo es demasiado grande. El máximo para un diseño es 64 KB.");
+        flash.addFlashAttribute("error", "El archivo es demasiado grande. Máximo 64 KB para un diseño y 5 MB para una foto.");
         // Solo se usa la RUTA de la pagina anterior (nunca otro dominio)
         String destino = "/mi-panel";
         try {
