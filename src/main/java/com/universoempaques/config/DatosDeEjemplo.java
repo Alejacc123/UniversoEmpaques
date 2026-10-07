@@ -320,7 +320,7 @@ public class DatosDeEjemplo {
         disenoRepository.save(d);
     }
 
-    /** PNG pequeno (bien por debajo de los 64 KB del BLOB) con el nombre del producto. */
+    /** PNG pequeno (unos 5 KB) con el nombre del producto. */
     private static byte[] imagenDeEjemplo(String producto, int version, Color color) {
         try {
             BufferedImage img = new BufferedImage(320, 220, BufferedImage.TYPE_INT_RGB);

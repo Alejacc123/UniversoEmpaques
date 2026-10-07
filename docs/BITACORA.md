@@ -14,7 +14,7 @@ una entrada al final de cada sesión (en su propio commit).
 | RF-06 a RF-09 | Cotizaciones: cliente solicita, comercial pone valor, cliente aprueba/rechaza, ambos consultan | Hecho |
 | RF-10 | Solicitar pedido | Hecho: desde una cotización aprobada (lo genera Comercial) o directo por el cliente desde "Mis pedidos" con productos del catálogo |
 | RF-11 | Pedido directo con detalle y estado inicial | Hecho (guarda PrecioUnitario) |
-| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 64 KB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
+| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 5 MB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
 | RF-14 / RF-15 / RF-17 | Estado del pedido, consulta y despacho | Hecho: flujo SOLICITADO → EN_DISEÑO → EN_PRODUCCIÓN → TERMINADO → DESPACHADO → ENTREGADO; cola de trabajo por área; el cliente ve el avance en "Mis pedidos" |
 | RF-16 | Notificaciones por correo (Observer) | Hecho: `EstadoPedidoCambiadoEvent` + `NotificacionService` (asíncrono). Sin correo configurado, deja el aviso en el log |
 | RF-18 | Reportes | Hecho: pantalla del admin con rango de fechas: pedidos por estado, valor, cotizaciones y tasa de aprobación, tiempo promedio por etapa y hasta la entrega, productos más pedidos; descarga CSV para Excel |
@@ -36,7 +36,7 @@ una entrada al final de cada sesión (en su propio commit).
 1. `Usuario.NombreEmpresa` y `Cliente.NombreEmpresa`: el diccionario dice `Nombre`.
 2. `Pedido.FechaRegistroTecnicas`: el diccionario dice `FechaRegistro`.
 3. ~~`Cliente.Telefono` y `Usuario.TelefonoEmpresa` son INT~~ → **ya se cambiaron a VARCHAR(20)** en `schema.sql` (no cabía un celular de 10 dígitos). Amelie debe actualizar el diccionario de datos.
-4. `Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB): la app ya valida ese límite, pero es poco para un diseño real. Sugerencia: MEDIUMBLOB (16 MB).
+4. ~~`Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB)~~ → **ya se cambiaron a MEDIUMBLOB** en `schema.sql` (la app acepta hasta 5 MB). Amelie debe actualizar el diccionario de datos.
 7. `Diseno.CodigoUsuario` es uno solo: se guarda quien REVISÓ (como dice el diccionario); se pierde quién lo subió. ¿Agregar `CodigoUsuarioDisenador`?
 5. `Cotizacion.CodigoPedido`: se usa así: la cotización nace sin pedido (NULL) y, al aprobarse, el comercial genera el pedido y se llena CodigoPedido. Confirmar con Amelie.
 6. `Diseno` cuelga de `DetallePedido` (no de `Pedido`): confirmar que es intencional.
@@ -129,4 +129,4 @@ una entrada al final de cada sesión (en su propio commit).
 - RF-16 ya estaba implementado (Observer + `NotificacionService`, 28/09); solo falta configurar el correo real.
 - **RF-16 ampliado:** además de los pedidos, ahora se avisa por correo en las cotizaciones (nuevo evento `CotizacionCambiadaEvent`, mismo patrón Observer): al cliente cuando su cotización tiene valor o Comercial acepta su contraoferta; al comercial cuando el cliente aprueba, rechaza o hace una contraoferta.
 - Panel del administrador: estado del correo de notificaciones y botón **«Enviar correo de prueba»** (se envía al correo del admin). Falta poner un Gmail real con contraseña de aplicación en `application-local.properties` del computador de la demo (SCRUM-318).
-
+- Diseños: `Logo` y `ArchivoDiseno` pasan de BLOB (64 KB) a **MEDIUMBLOB** (cambio 5 en `schema.sql`); la app acepta archivos de hasta 5 MB. Hay que volver a crear la base.

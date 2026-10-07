@@ -20,13 +20,13 @@ import java.util.List;
  *  - Cada carga es una VERSION nueva (1, 2, 3...). Se revisa la ultima.
  *  - El pedido pasa a produccion solo si la ultima version de TODOS sus
  *    productos esta APROBADA (lo revisa PedidoService.avanzarEstado).
- *  - Los archivos van en columnas BLOB: maximo 64 KB cada uno.
+ *  - Los archivos van en columnas MEDIUMBLOB; la app acepta hasta 5 MB por archivo.
  */
 @Service
 public class DisenoService {
 
-    /** Limite de la columna BLOB de MySQL. */
-    public static final int TAMANO_MAXIMO = 65_535;
+    /** Maximo por archivo (5 MB, igual que spring.servlet.multipart.max-file-size). La columna MEDIUMBLOB admite 16 MB. */
+    public static final int TAMANO_MAXIMO = 5 * 1024 * 1024;
 
     private final DisenoRepository disenoRepository;
     private final DetallePedidoRepository detallePedidoRepository;
@@ -127,15 +127,15 @@ public class DisenoService {
 
     // ------------------------------------------------------------------
 
-    /** Lee el archivo y valida tamano (BLOB = 64 KB) y tipo (PNG, JPG o PDF). */
+    /** Lee el archivo y valida tamano (maximo 5 MB) y tipo (PNG, JPG o PDF). */
     private static byte[] leerArchivo(MultipartFile archivo, String nombre, boolean obligatorio) throws IOException {
         if (archivo == null || archivo.isEmpty()) {
             if (obligatorio) throw new IllegalArgumentException(nombre + " es obligatorio.");
             return null;
         }
         if (archivo.getSize() > TAMANO_MAXIMO) {
-            throw new IllegalArgumentException(nombre + " pesa " + (archivo.getSize() / 1024)
-                    + " KB; el máximo es 64 KB (límite de la base de datos). Redúcelo o expórtalo en menor calidad.");
+            throw new IllegalArgumentException(nombre + " pesa " + String.format("%.1f", archivo.getSize() / (1024.0 * 1024))
+                    + " MB; el máximo es 5 MB. Redúcelo o expórtalo en menor calidad.");
         }
         byte[] bytes = archivo.getBytes();
         if (tipoDeContenido(bytes) == null) {
