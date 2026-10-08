@@ -14,7 +14,7 @@ una entrada al final de cada sesión (en su propio commit).
 | RF-06 a RF-09 | Cotizaciones: cliente solicita, comercial pone valor, cliente aprueba/rechaza, ambos consultan | Hecho |
 | RF-10 | Solicitar pedido | Hecho: desde una cotización aprobada (lo genera Comercial) o directo por el cliente desde "Mis pedidos" con productos del catálogo |
 | RF-11 | Pedido directo con detalle y estado inicial | Hecho (guarda PrecioUnitario) |
-| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 64 KB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
+| RF-12 / RF-13 | Diseño: cargar el archivo y aprobar/pedir ajustes | Hecho: Diseño sube versiones por producto (PNG/JPG/PDF ≤ 5 MB, logo, color RGB); Comercial aprueba o pide ajustes; sin todos aprobados no pasa a producción |
 | RF-14 / RF-15 / RF-17 | Estado del pedido, consulta y despacho | Hecho: flujo SOLICITADO → EN_DISEÑO → EN_PRODUCCIÓN → TERMINADO → DESPACHADO → ENTREGADO; cola de trabajo por área; el cliente ve el avance en "Mis pedidos" |
 | RF-16 | Notificaciones por correo (Observer) | Hecho: `EstadoPedidoCambiadoEvent` + `NotificacionService` (asíncrono). Sin correo configurado, deja el aviso en el log |
 | RF-18 | Reportes | Hecho: pantalla del admin con rango de fechas: pedidos por estado, valor, cotizaciones y tasa de aprobación, tiempo promedio por etapa y hasta la entrega, productos más pedidos; descarga CSV para Excel |
@@ -36,10 +36,11 @@ una entrada al final de cada sesión (en su propio commit).
 1. `Usuario.NombreEmpresa` y `Cliente.NombreEmpresa`: el diccionario dice `Nombre`.
 2. `Pedido.FechaRegistroTecnicas`: el diccionario dice `FechaRegistro`.
 3. ~~`Cliente.Telefono` y `Usuario.TelefonoEmpresa` son INT~~ → **ya se cambiaron a VARCHAR(20)** en `schema.sql` (no cabía un celular de 10 dígitos). Amelie debe actualizar el diccionario de datos.
-4. `Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB): la app ya valida ese límite, pero es poco para un diseño real. Sugerencia: MEDIUMBLOB (16 MB).
+4. ~~`Logo` y `ArchivoDiseno` son BLOB (máx. 64 KB)~~ → **ya se cambiaron a MEDIUMBLOB** en `schema.sql` (la app acepta hasta 5 MB). Amelie debe actualizar el diccionario de datos.
 7. `Diseno.CodigoUsuario` es uno solo: se guarda quien REVISÓ (como dice el diccionario); se pierde quién lo subió. ¿Agregar `CodigoUsuarioDisenador`?
 5. `Cotizacion.CodigoPedido`: se usa así: la cotización nace sin pedido (NULL) y, al aprobarse, el comercial genera el pedido y se llena CodigoPedido. Confirmar con Amelie.
 6. `Diseno` cuelga de `DetallePedido` (no de `Pedido`): confirmar que es intencional.
+8. **Nuevas columnas en `Cotizacion`** (`ValorContraoferta`, `Observaciones`, `FotoReferencia` MEDIUMBLOB) por las correcciones de la Product Owner: Amelie debe agregarlas al diccionario de datos.
 
 ## Registro de sesiones
 
@@ -113,3 +114,19 @@ una entrada al final de cada sesión (en su propio commit).
 - `admin@universoempaques.com` ya no se crea con datos de prueba y, si existe, se elimina al arrancar (se usa `admin@prueba.com`). Solo se crea en producción (`app.datos-prueba=false`) con la base vacía. README actualizado.
 - Decisión: la demo se hace **con los datos de ejemplo**. La rama `Daniel-Backend` tiene una copia a mano de lo nuestro: **no se toca hasta que Daniel lo hable** (si hace merge de `Development` así, tendrá conflictos).
 
+- Landing adaptada al celular: portada, pasos, productos, beneficios y llamado a la acción centrados; botones a lo ancho y barra superior en una sola línea.
+
+### 2026-10-06 — Juan Gamboa (Backend) — correcciones de la Product Owner
+- Mi cuenta: el texto ahora dice «solo los puede cambiar Universo Empaques».
+- Cotización: el cliente puede subir una **foto de referencia** opcional (JPG/PNG hasta 5 MB, se valida la firma del archivo); Comercial y el cliente la ven en el detalle.
+- Cotización: las **medidas** son 3 campos numéricos en cm (largo, ancho, alto opcional) y se guardan como «30x20x15 cm».
+- **Contraoferta:** con la cotización «Cotizada», el cliente puede aprobar o rechazar dejando observaciones, o proponer otro valor (estado nuevo `CONTRAOFERTA`). Comercial acepta la contraoferta (queda aprobada con ese valor) o responde con un valor nuevo (vuelve a «Cotizada»). El panel de Comercial cuenta las contraofertas como «por cotizar».
+- `schema.sql`: 3 columnas nuevas en Cotizacion (cambio 4). **Hay que volver a crear la base** (o hacer ALTER TABLE).
+- Copias de seguridad: se quitó de la ayuda la mención a `configuracion.properties`.
+- N.º de documento: **exactamente 10 dígitos**.
+- Horas trabajadas: máximo 99.999.999,99 (el límite de la columna DECIMAL(10,2)).
+- Datos de ejemplo: una cotización en contraoferta (Panadería La Espiga). Pruebas nuevas en `CotizacionServiceTest` y `DatosColombiaTest`.
+- RF-16 ya estaba implementado (Observer + `NotificacionService`, 28/09); solo falta configurar el correo real.
+- **RF-16 ampliado:** además de los pedidos, ahora se avisa por correo en las cotizaciones (nuevo evento `CotizacionCambiadaEvent`, mismo patrón Observer): al cliente cuando su cotización tiene valor o Comercial acepta su contraoferta; al comercial cuando el cliente aprueba, rechaza o hace una contraoferta.
+- Panel del administrador: estado del correo de notificaciones y botón **«Enviar correo de prueba»** (se envía al correo del admin). Falta poner un Gmail real con contraseña de aplicación en `application-local.properties` del computador de la demo (SCRUM-318).
+- Diseños: `Logo` y `ArchivoDiseno` pasan de BLOB (64 KB) a **MEDIUMBLOB** (cambio 5 en `schema.sql`); la app acepta archivos de hasta 5 MB. Hay que volver a crear la base.

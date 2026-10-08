@@ -32,6 +32,14 @@
                         <dd class="col-sm-8" th:text="${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy')}">-</dd>
                         <dt class="col-sm-4">Empaque</dt>
                         <dd class="col-sm-8" th:text="${c.especificaciones}">-</dd>
+                        <dt class="col-sm-4" th:if="${c.observaciones != null}">Observaciones del cliente</dt>
+                        <dd class="col-sm-8" th:if="${c.observaciones != null}" th:text="${c.observaciones}">-</dd>
+                        <dt class="col-sm-4" th:if="${c.tieneFoto}">Foto de referencia</dt>
+                        <dd class="col-sm-8" th:if="${c.tieneFoto}">
+                            <a th:href="@{/comercial/cotizaciones/{id}/foto(id=${c.codigo})}" target="_blank">
+                                <img th:src="@{/comercial/cotizaciones/{id}/foto(id=${c.codigo})}" alt="Foto de referencia" class="foto-cotizacion">
+                            </a>
+                        </dd>
                         <dt class="col-sm-4" th:if="${c.usuario != null}">Cotizada por</dt>
                         <dd class="col-sm-8" th:if="${c.usuario != null}" th:text="${c.usuario.nombre}">-</dd>
                     </dl>
@@ -41,8 +49,21 @@
             <div class="col-lg-5">
                 <div class="card p-4 h-100">
                     <!-- RF-07: poner o corregir el valor mientras el cliente no responda -->
-                    <th:block th:if="${c.estado.name() == 'SOLICITADA' or c.estado.name() == 'COTIZADA'}">
-                        <h6 class="mb-3" th:text="${c.estado.name() == 'SOLICITADA'} ? 'Registrar valor' : 'Corregir valor'">Valor</h6>
+                    <!-- Contraoferta del cliente: aceptarla o responder con un valor nuevo -->
+                    <th:block th:if="${c.estado.name() == 'CONTRAOFERTA'}">
+                        <h6 class="mb-2">Contraoferta del cliente</h6>
+                        <p class="small text-muted mb-1" th:text="${'Valor cotizado: ' + (c.valor != null ? '$' + #numbers.formatDecimal(c.valor, 0, 'POINT', 0, 'COMMA') : '—')}">-</p>
+                        <p class="fs-4 fw-bold mb-3" th:text="'$' + ${#numbers.formatDecimal(c.valorContraoferta, 0, 'POINT', 0, 'COMMA')}">$0</p>
+                        <form th:action="@{/comercial/cotizaciones/{id}/aceptar-contraoferta(id=${c.codigo})}" method="post" class="mb-3"
+                              onsubmit="return confirm('¿Aceptar el valor propuesto por el cliente? La cotización quedará aprobada.');">
+                            <button class="btn btn-ue w-100">Aceptar contraoferta</button>
+                        </form>
+                        <p class="small text-muted mb-2">O responde con un valor nuevo (vuelve al cliente):</p>
+                    </th:block>
+
+                    <th:block th:if="${c.estado.name() == 'SOLICITADA' or c.estado.name() == 'COTIZADA' or c.estado.name() == 'CONTRAOFERTA'}">
+                        <h6 class="mb-3" th:unless="${c.estado.name() == 'CONTRAOFERTA'}"
+                            th:text="${c.estado.name() == 'SOLICITADA'} ? 'Registrar valor' : 'Corregir valor'">Valor</h6>
                         <form th:action="@{/comercial/cotizaciones/{id}/valor(id=${c.codigo})}"
                               th:object="${registrarValorCotizacionForm}" method="post">
                             <div class="input-group mb-2">
@@ -54,7 +75,7 @@
                             <button class="btn btn-ue w-100">Guardar valor</button>
                         </form>
                         <p class="text-muted small mt-2 mb-0" th:if="${c.estado.name() == 'COTIZADA'}">
-                            Esperando que el cliente apruebe o rechace.
+                            Esperando que el cliente apruebe, rechace o proponga otro valor.
                         </p>
                     </th:block>
 

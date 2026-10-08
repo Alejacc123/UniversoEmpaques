@@ -100,6 +100,9 @@ a.tarjeta-dato:hover{ border-color:var(--ue-blue); box-shadow:0 2px 8px rgba(75,
   content:""; position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--ue-blue);
 }
 
+/* Foto de referencia de una cotizacion */
+.foto-cotizacion{ max-width:220px; max-height:160px; border-radius:8px; border:1px solid var(--ue-border); object-fit:cover; }
+
 /* ---------- Disenos ---------- */
 .miniatura-diseno{
   width:64px; height:64px; border:1px solid var(--ue-border); border-radius:8px; overflow:hidden;
@@ -249,6 +252,34 @@ a.tarjeta-dato:hover{ transform:scale(1.03); }
 .avatar{ transition:transform .15s ease; }
 .tarjeta-producto:hover{ transform:translateY(-3px) scale(1.02); }
 .paso-numero:hover{ transform:scale(1.08); }
+
+/* ---------- Landing en tablet y celular: todo centrado ----------
+   Por debajo de 992px la portada pasa a una sola columna; ahi el texto
+   alineado a la izquierda con la tarjeta debajo se ve descuadrado. */
+@media (max-width:991px){
+  .hero-landing .col-lg-6:first-child{ text-align:center; }
+  .hero-landing .lead{ margin-left:auto; margin-right:auto; max-width:560px; }
+  .hero-landing .d-flex.flex-wrap{ justify-content:center; }
+  .hero-puntos{ justify-content:center; }
+  .demo-seguimiento{ margin:1rem auto 0; }
+}
+@media (max-width:767px){
+  .hero-landing h1{ font-size:1.9rem; }
+  .hero-landing .lead{ font-size:1.02rem; }
+  .landing .navbar-ue{ flex-wrap:nowrap; }
+  .landing .navbar-ue .btn{ padding:.3rem .55rem; font-size:.78rem; white-space:nowrap; }
+  .landing .navbar-ue .logo-nav{ height:24px; }
+  .landing .paso-numero{ margin-bottom:.6rem !important; }
+  .hero-landing .d-flex.flex-wrap .btn{ width:100%; }
+  .hero-puntos{ flex-direction:column; align-items:center; gap:.4rem; }
+  .beneficio{ text-align:center; }
+  .beneficio .ic{ display:block; margin:0 auto .5rem; }
+  .tarjeta-producto{ text-align:center; }
+  .banda-cta{ text-align:center; }
+  .banda-cta .btn{ width:100%; margin-top:.5rem; }
+  .pie-publico{ text-align:center; }
+  .seccion-titulo{ font-size:1.6rem; }
+}
 
 /* Quien tenga activado "reducir movimiento" en su sistema no ve el zoom */
 @media (prefers-reduced-motion: reduce){

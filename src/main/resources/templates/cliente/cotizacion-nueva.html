@@ -15,7 +15,7 @@
         <p class="text-muted small mb-4">Cuéntanos qué empaque necesitas. El área comercial te responderá con el valor.</p>
 
         <div class="card p-4" style="max-width:560px;">
-            <form th:action="@{/cliente/cotizaciones}" th:object="${solicitarCotizacionForm}" method="post">
+            <form th:action="@{/cliente/cotizaciones}" th:object="${solicitarCotizacionForm}" method="post" enctype="multipart/form-data">
 
                 <div class="mb-2">
                     <label class="form-label small">Tipo de empaque</label>
@@ -28,18 +28,33 @@
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('tipoEmpaque')}" th:errors="*{tipoEmpaque}"></div>
                 </div>
 
+                <div class="mb-2">
+                    <label class="form-label small">Cantidad (unidades)</label>
+                    <input type="number" min="1" max="1000000" class="form-control" th:field="*{cantidad}"
+                           th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+                </div>
+
+                <!-- Medidas: solo numeros, en centimetros -->
+                <label class="form-label small mb-1">Medidas en centímetros</label>
                 <div class="row g-2 mb-2">
-                    <div class="col-sm-6">
-                        <label class="form-label small">Cantidad (unidades)</label>
-                        <input type="number" min="1" max="1000000" class="form-control" th:field="*{cantidad}"
-                               th:classappend="${#fields.hasErrors('cantidad')} ? 'is-invalid'">
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('cantidad')}" th:errors="*{cantidad}"></div>
+                    <div class="col-4">
+                        <input type="number" step="0.1" min="0.1" max="999" inputmode="decimal" class="form-control"
+                               th:field="*{largo}" placeholder="Largo"
+                               th:classappend="${#fields.hasErrors('largo')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('largo')}" th:errors="*{largo}"></div>
                     </div>
-                    <div class="col-sm-6">
-                        <label class="form-label small">Medidas</label>
-                        <input type="text" class="form-control" th:field="*{medidas}" maxlength="30" placeholder="30x20x15 cm"
-                               th:classappend="${#fields.hasErrors('medidas')} ? 'is-invalid'">
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('medidas')}" th:errors="*{medidas}"></div>
+                    <div class="col-4">
+                        <input type="number" step="0.1" min="0.1" max="999" inputmode="decimal" class="form-control"
+                               th:field="*{ancho}" placeholder="Ancho"
+                               th:classappend="${#fields.hasErrors('ancho')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('ancho')}" th:errors="*{ancho}"></div>
+                    </div>
+                    <div class="col-4">
+                        <input type="number" step="0.1" min="0.1" max="999" inputmode="decimal" class="form-control"
+                               th:field="*{alto}" placeholder="Alto (opcional)"
+                               th:classappend="${#fields.hasErrors('alto')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('alto')}" th:errors="*{alto}"></div>
                     </div>
                 </div>
 
@@ -56,6 +71,14 @@
                               placeholder="Ej: con logo a una tinta, ventana transparente..."
                               th:classappend="${#fields.hasErrors('observaciones')} ? 'is-invalid'"></textarea>
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('observaciones')}" th:errors="*{observaciones}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small" for="foto">Foto de referencia <span class="text-muted">(opcional)</span></label>
+                    <input type="file" id="foto" name="foto" accept="image/png,image/jpeg" class="form-control"
+                           th:classappend="${#fields.hasErrors('foto')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('foto')}" th:errors="*{foto}"></div>
+                    <div class="form-text">Una foto del empaque que tienes en mente (JPG o PNG, máximo 5 MB).</div>
                 </div>
 
                 <div class="d-flex gap-2">

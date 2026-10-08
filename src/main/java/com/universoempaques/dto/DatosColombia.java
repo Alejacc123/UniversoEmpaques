@@ -32,8 +32,8 @@ public final class DatosColombia {
     /** NIT o cedula: 6 a 10 digitos, con o sin digito de verificacion (900123456-7). */
     public static final String NIT = "^\\d{6,10}(-\\d)?$";
 
-    /** Cedula de ciudadania: 6 a 10 digitos. */
-    public static final String DOCUMENTO = "^$|^\\d{6,10}$";
+    /** Cedula de ciudadania: exactamente 10 digitos (pedido de la Product Owner). */
+    public static final String DOCUMENTO = "^$|^\\d{10}$";
 
     /** Nombre de persona: letras (con tildes y n), espacios, punto, apostrofe y guion. */
     public static final String NOMBRE_PERSONA = "^[\\p{L} .'-]{2,100}$";
@@ -53,7 +53,7 @@ public final class DatosColombia {
     public static final String MSG_CELULAR = "Celular inválido: 10 dígitos que empiezan por 3 (ej: 3001234567)";
     public static final String MSG_TELEFONO = "Teléfono inválido: 10 dígitos, celular (3xx) o fijo (60x) (ej: 6076851234)";
     public static final String MSG_NIT = "NIT inválido: 6 a 10 dígitos, con o sin dígito de verificación (ej: 900123456-7)";
-    public static final String MSG_DOCUMENTO = "Documento inválido: solo números, de 6 a 10 dígitos";
+    public static final String MSG_DOCUMENTO = "Documento inválido: deben ser exactamente 10 números";
     public static final String MSG_NOMBRE_PERSONA = "Nombre inválido: solo letras y espacios (2 a 100 caracteres)";
     public static final String MSG_NOMBRE_EMPRESA = "Nombre inválido: letras, números y . , & ( ) - (2 a 150 caracteres)";
     public static final String MSG_CORREO = "Correo inválido (ej: nombre@empresa.com)";
